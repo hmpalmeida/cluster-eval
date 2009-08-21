@@ -35,9 +35,11 @@ void Scan::run(const float epsilon, const int mi){
      for (node = g.graph_map.begin(); node != g.graph_map.end(); ++node) {
           // Just so we don't get lost
           ++cnt;
+          /*
           if (cnt % 10000 == 0){
                std::cout << cnt << " nodes evaluated." << std::endl;
           }
+          */
           
           // Making sure this node was not yet evaluated
           if (g.getLabel(node->first) == -1) {
@@ -99,6 +101,7 @@ void Scan::run(const float epsilon, const int mi){
                }
           }
      }
+     std::cout << "SCAN finished.";
      std::cout << std::endl;
 }
 
@@ -337,6 +340,7 @@ float Scan::getModularity() {
      // 1 - Generate Matrix e, where:
      // e_{i,j} = (edges linking ci to cj)/(all edges in G)
      float** e;
+     std::cout << "num_clusters = " << num_clusters << std::endl;
      SquareMatrix<float> matrix(num_clusters+1);
      e = matrix;
      buildAssortativityMatrix(e);
@@ -345,13 +349,16 @@ float Scan::getModularity() {
      for (int i = 0; i <= num_clusters; ++i){
           tr += e[i][i];
      }
+     std::cout << "Calculate trace (e): DONE!" << std::endl;
      // 3 - Calculate e^2
      SquareMatrix<float> matrix2(num_clusters+1);
      float** e_squared;
      e_squared = matrix2;
      squareMatrixMultiplication(e, e_squared, num_clusters+1);
+     std::cout << "Calculate e^2: DONE!" << std::endl;
      // 4 - Sum all elements of e^2 (||e^2||)
      float sum_e = sumElementsSquareMatrix(e_squared, num_clusters+1);
+     std::cout << "Sum all elements e^2 (||e^2||): DONE!" << std::endl;
      // 5 - Q = tr - ||e^2||
      return tr - sum_e;
 }

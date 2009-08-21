@@ -8,18 +8,21 @@ float getBestEpsilon(float start, float end, float step, int mi, char* graph) {
      float best_mod, epsilon;
      best_mod = 0.0;
      for (float f = start; f <= end; f+=step) {
-          Scan sc;
+          Scan *sc = new Scan();
           try {
-               sc.loadGraph(graph);
+               sc->loadGraph(graph);
           } catch (std::string err) {
                std::cout << err << std::endl;
           }
-          sc.run(f, mi);
-          float mod = sc.getModularity();
+          sc->run(f, mi);
+          std::cout << "Calculando Modularidade! \n";
+          float mod = sc->getModularity();
+          std::cout << "FEITO! \n";
           if (mod >= best_mod) {
                epsilon = f;
                best_mod = mod;
           }
+          delete sc;
      }
      return epsilon;
 }
@@ -40,6 +43,8 @@ int main(int argc, char** argv){
           std::cout << "Too few arguments: " << argc -1 << std::endl;
           std::cout << "Possible uses:" << std::endl <<
                "\t ./scan r <epsilon> <mi> <graph_file>" << std::endl;
+          std::cout << "\t ./scan e <Starting_e> <ending_e> <step> " <<
+               "<mi> <graph_file>" << std::endl;
      } else {
           char x = (char)argv[1][0];
           switch (x) {
@@ -62,8 +67,6 @@ int main(int argc, char** argv){
                          "<mi> <graph_file>" << std::endl;
                          return 1;
                     }
-                    // FIXME Debugging
-                    std::cout << "argv[6] = " << argv[6] << std::endl;
                     std::cout << "Best Epsilon: " << 
                          getBestEpsilon(atof(argv[2]),atof(argv[3]),
                                    atof(argv[4]),atoi(argv[5]),argv[6]) << 
