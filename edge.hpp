@@ -1,0 +1,16 @@
+#include "utils.hpp"
+
+class Edge{
+     protected:
+          uint node;
+          float weight;
+     public:
+          Edge();
+          Edge(uint n, float w);
+          ~Edge();
+          void setNode(uint n);
+          void setWeight(float w);
+          uint getNode();
+          float getWeight();
+          bool operator<(const Edge& a);
+};
