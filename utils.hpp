@@ -3,6 +3,11 @@
  */
 
 #include <string.h>
+#include <string>
+#include <iostream>
+#include <sstream>
+//#include <stream>
+
 
 typedef unsigned int uint;
 
@@ -90,3 +95,11 @@ public:
 void squareMatrixMultiplication(float** m, float** ms, uint n);
 
 float sumElementsSquareMatrix(float** m, uint n);
+
+template <typename T>
+std::string to_string(const T& value){
+     std::ostringstream oss;
+     oss << value;
+     return oss.str();
+}
+

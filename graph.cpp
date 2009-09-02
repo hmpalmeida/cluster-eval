@@ -11,11 +11,20 @@ Graph::Graph(std::string filename){
      readFile(filename);
 }
 
+
+// Expects a file formatted like this::
+// nodes (num_nodes) dir (1|0) weight (1|0)
+// node_id
+// ...
+// edges
+// node1 node2 (weight)
+// ...
 void Graph::readFile(std::string filename){
      // auxiliar vars
-     char tmp[10];
+     char tmp[10], dir[5], weig[10], directed, weighted;
      uint auxint, auxint2;
      FILE * file;
+     float auxfloat;
      
      num_edges = 0;
 
@@ -24,26 +33,54 @@ void Graph::readFile(std::string filename){
 
      if (file != NULL) {
           // first line should start with "nodes" and the number of nodes
-          fscanf(file, "%s %d", &tmp, &auxint);
-          if (strcmp(tmp,"nodes") == 0) {
-               num_nodes = auxint;
-               for (int i = 0; i < num_nodes; ++i) {
-                    fscanf(file, "%d", &auxint);
-                    graph_map[auxint] = NULL;
+          // tests.google.com (parte do code.google.com, o nome pode 
+          // não ser esse)
+          fscanf(file, "%s %d %s %c %s %c", &tmp, &auxint, &dir, &directed,
+                                             &weig, &weighted);
+          // Checking the file format
+          if ((strcmp(tmp,"nodes")   != 0) ||
+              (strcmp(dir,"dir")     != 0) ||
+              (strcmp(weig,"weight") != 0)) {
+               throw ("Input in wrong format: expecting \"nodes (num_nodes) dir (1|0) weight (1|0) \".");
+          }
+          // Everything ok? Proceed reading the nodes
+          num_nodes = auxint;
+          for (int i = 0; i < num_nodes; ++i) {
+               fscanf(file, "%d", &auxint);
+               graph_map[auxint] = NULL;
+          }
+          // and now, the edges
+          fscanf(file,"%s",tmp);
+          if (strcmp(tmp,"edges") != 0) {
+               throw ("Input in wrong format: expecting \"vertices\"");
+          }
+          // Fugly, I know, but gets the job done
+          if ((weighted == '0') && (directed == '0')) {
+               while (!feof(file)) {
+                    fscanf(file,"%d %d",&auxint,&auxint2);
+                    addEdge(auxint, auxint2);
+                    addEdge(auxint2, auxint);
+                    ++num_edges;
                }
-               // and now, the vertices
-               fscanf(file,"%s",tmp);
-               if (strcmp(tmp,"vertices") == 0) {
-                    while (!feof(file)) {
-                         fscanf(file,"%d %d",&auxint,&auxint2);
-                         addEdge(auxint, auxint2);
-                         ++num_edges;
-                    }
-               } else {
-                    throw ("Input in wrong format: expecting \"vertices\"");
+          } else if ((weighted == '0') && (directed == '1')) {
+               while (!feof(file)) {
+                    fscanf(file,"%d %d",&auxint,&auxint2);
+                    addEdge(auxint, auxint2);
+                    ++num_edges;
+               }
+          } else if ((weighted == '1') && (directed == '0')) {
+               while (!feof(file)) {
+                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxfloat);
+                    addEdge(auxint, auxint2, auxfloat);
+                    addEdge(auxint2, auxint, auxfloat);
+                    ++num_edges;
                }
           } else {
-               throw ("Input in wrong format: expecting \"nodes\".");
+               while (!feof(file)) {
+                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxfloat);
+                    addEdge(auxint, auxint2, auxfloat);
+                    ++num_edges;
+               }
           }
           fclose(file);
      } else {
@@ -52,50 +89,47 @@ void Graph::readFile(std::string filename){
      }
 }
 
-// Add an UNDIRECTED edge to the graph.
-void Graph::addEdge(uint node1, uint node2){
+
+// is necessary, add it both ways. Also, needs to use the "Edge" class
+// Add a DIRECTED edge to the graph. Must Add both ways if undirected
+void Graph::addEdge(uint node1, uint node2, float weight){
      // adding reference to the first node
      if (graph_map[node1] == NULL) {
           // Set yet not created
-          graph_map[node1] = new std::set<uint>;
+          graph_map[node1] = new std::set<Edge>;
      }
      // insert it. The set will handle possible duplicates
-     graph_map[node1]->insert(node2);
-     // adding reference to the second node
-     if (graph_map[node2] == NULL) {
-          // Set yet not created
-          graph_map[node2] = new std::set<uint>;
-     }
-     // insert it. The set will handle possible duplicates
-     graph_map[node2]->insert(node1);
+     Edge e;
+     e.setNode(node2);
+     e.setWeight(weight);
+     graph_map[node1]->insert(e);
 }
 
 // Destructor
 Graph::~Graph() {
-   hmap::const_iterator it;
-   for (it = graph_map.begin(); it != graph_map.end(); ++it) {
-      // Since the graph is connected, we can just delete all pointers
-      // without fear of freeing any unallocated pointer
-      delete it->second;
-   }
+     hmap::const_iterator it;
+     for (it = graph_map.begin(); it != graph_map.end(); ++it) {
+          // Now, Delete the set
+          delete it->second;
+     }
 }
 
 // Print the vector. Mainly for testing purposes
 void Graph::print() {
      hmap::iterator mapIt;
-     std::set<uint>::iterator setIt;
+     std::set<Edge>::iterator setIt;
      for (mapIt = graph_map.begin(); mapIt != graph_map.end(); ++mapIt) {
           std::cout << mapIt->first << " ->";
           for (setIt = mapIt->second->begin();
                setIt != mapIt->second->end();
                ++setIt) {
-          std::cout << " " << *setIt;
+               std::cout << " " << setIt->toString();
           }
           std::cout << std::endl;
      }
 }
 
-std::set<uint>* Graph::getAdjacency(uint node){
+std::set<Edge>* Graph::getAdjacency(uint node){
      return graph_map[node];
 }
 

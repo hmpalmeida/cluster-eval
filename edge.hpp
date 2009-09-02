@@ -1,6 +1,7 @@
 #include "utils.hpp"
+#include <string>
 
-class Edge{
+class Edge {
      protected:
           uint node;
           float weight;
@@ -12,5 +13,7 @@ class Edge{
           void setWeight(float w);
           uint getNode();
           float getWeight();
-          bool operator<(const Edge& a);
+          bool operator<(const Edge& a) const;
+          bool operator==(const Edge& a) const;
+          std::string toString() const;
 };

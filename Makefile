@@ -22,5 +22,9 @@ scan: scan.cpp scan.hpp
 utils: utils.cpp utils.hpp
 	$(CC) $(CPPFLAGS) -c utils.cpp utils.o
 
+teste: teste.cpp graph.o utils.o edge.o
+	$(CC) $(CPPFLAGS) -c teste.cpp 
+	$(CC) $(CPPFLAGS) -o teste utils.o graph.o teste.o edge.o
+
 clean:
-	rm *.o scan
+	rm *.o scan teste

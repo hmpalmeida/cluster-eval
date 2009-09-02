@@ -1,32 +1,46 @@
 #include "edge.hpp"
+#include <iostream>
 
-Edge::Edge(){
+Edge::Edge() {
 }
 
-Edge::Edge(uint n, float w){
+Edge::Edge(uint n, float w) {
      node = n;
      weight = w;
 }
 
-Edge::~Edge(){
+Edge::~Edge() {
 }
 
-void Edge::setNode(uint n){
+void Edge::setNode(uint n) {
      node = n;
 }
 
-void Edge::setWeight(float w){
+void Edge::setWeight(float w) {
      weight = w;
 }
 
-uint Edge::getNode(){
+uint Edge::getNode() {
      return node;
 }
 
-float Edge::getWeight(){
+float Edge::getWeight() {
      return weight;
 }
 
-bool Edge::operator<(const Edge& a) {
+bool Edge::operator<(const Edge& a) const {
     return node < a.node;
+}
+
+std::string Edge::toString() const {
+     std::string s("(");
+     s += to_string(node);
+     s += ",";
+     s += to_string(weight);
+     s += ")";
+     return s;
+}
+
+bool Edge::operator==(const Edge& a) const {
+     return node == a.node;
 }
