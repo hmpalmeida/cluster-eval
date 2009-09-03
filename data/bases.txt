@@ -1,0 +1,13 @@
+astro-ph.gml
+     Co-autoria na área de astrofísica.
+     Não direcionado. 
+     Com pesos.
+     Ref: M. E. J. Newman, The structure of scientific collaboration networks,
+          Proc. Natl. Acad. Sci. USA 98, 404-409 (2001).
+
+uto-rede-geral-codBuyer-codSeller-codNegotiation-Price-Feedback-shopCategory-date.txt
+     Leilões do UOL.
+     Direcionado.
+     Vários atributos que podem derivar pesos.
+
+

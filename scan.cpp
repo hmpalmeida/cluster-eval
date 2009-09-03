@@ -24,6 +24,7 @@ void Scan::loadGraph(std::string filename){
      }
 }
 
+// FIXME Must use the Edge class... Probably :P
 // Main SCAN algorithm
 void Scan::run(const float epsilon, const int mi){
      // All vertices begin unclassified
@@ -33,14 +34,6 @@ void Scan::run(const float epsilon, const int mi){
      hmap::iterator node;
      uint cnt = 0;
      for (node = g.graph_map.begin(); node != g.graph_map.end(); ++node) {
-          // Just so we don't get lost
-          ++cnt;
-          /*
-          if (cnt % 10000 == 0){
-               std::cout << cnt << " nodes evaluated." << std::endl;
-          }
-          */
-          
           // Making sure this node was not yet evaluated
           if (g.getLabel(node->first) == -1) {
                // Is it a core?
@@ -48,28 +41,28 @@ void Scan::run(const float epsilon, const int mi){
                     // Will begin a new cluster
                     int cid = getNewClusterID();
                     // Put all the e-neighborhood of the node in a queue
-                    std::set<uint> x;
+                    std::set<Edge> x;
                     x = neighborhood(node->first, epsilon);
                     std::queue<uint> q;
-                    std::set<uint>::iterator it;
+                    std::set<Edge>::iterator it;
                     for (it = x.begin(); it != x.end(); ++it) {
-                         q.push(*it);
+                         q.push(it->getNode());
                     }
                     while (!q.empty()) {
                          uint y = q.front();
                          q.pop();
-                         std::set<uint> r;
+                         std::set<Edge> r;
                          r = dirReach(y, epsilon, mi);
-                         std::set<uint>::iterator setIt;
+                         std::set<Edge>::iterator setIt;
                          for (setIt = r.begin(); setIt != r.end(); ++setIt) {
                               //std::cout << "Node " << *setIt << " | Label = " 
                               //     << g.getLabel(*setIt) << std::endl;
-                              if (g.getLabel(*setIt) == -1) {
-                                   addToCluster(*setIt, cid);
-                                   q.push(*setIt);
+                              if (g.getLabel(setIt->getNode()) == -1) {
+                                   addToCluster(setIt->getNode(), cid);
+                                   q.push(setIt->getNode());
                               }
-                              if (g.getLabel(*setIt) == 0) {
-                                   addToCluster(*setIt, cid);
+                              if (g.getLabel(setIt->getNode()) == 0) {
+                                   addToCluster(setIt->getNode(), cid);
                               }
                          }
 
@@ -89,11 +82,9 @@ void Scan::run(const float epsilon, const int mi){
      for (nmnode = g.label.begin(); nmnode != g.label.end(); ++nmnode) {
           if (nmnode->second == 0) {
                std::set<uint> tmp;
-               tmp = isHub(nmnode->first);
-               //if (isHub(nmnode->first)) {
+               tmp = getNeighborClusters(nmnode->first);
                if (tmp.size() > 1) {
                     addHub(nmnode->first, tmp); 
-                    //hubs.push_back(nmnode->first);
                } else {
                     std::pair<uint, uint> 
                          o(nmnode->first,*tmp.begin());
@@ -107,19 +98,19 @@ void Scan::run(const float epsilon, const int mi){
 
 // Destructor
 Scan::~Scan() {
-   hmap::const_iterator it;
-   for (it = clusters.begin(); it != clusters.end(); ++it) {
-      delete it->second;
-   }
-   for (it = hubs.begin(); it != hubs.end(); ++it) {
-      delete it->second;
-   }
+     hmap_uint_suint::const_iterator it;
+     for (it = clusters.begin(); it != clusters.end(); ++it) {
+          delete it->second;
+     }
+          for (it = hubs.begin(); it != hubs.end(); ++it) {
+          delete it->second;
+     }
 }
 
 // Prints all clusters. For testing
-void Scan::printClusters(){
+void Scan::writeClusters(){
      std::ofstream outfile("clusters.txt");
-     hmap::iterator mapIt;
+     hmap_uint_suint::iterator mapIt;
      std::set<uint>::iterator setIt;
      for (mapIt = clusters.begin(); mapIt != clusters.end(); ++mapIt) {
           outfile << "c" << mapIt->first << " ->";
@@ -134,7 +125,7 @@ void Scan::printClusters(){
 }
 
 // Prints all outliers
-void Scan::printOutliers(){
+void Scan::writeOutliers(){
      //std::cout << "Outliers: " << std::endl;
      std::ofstream outfile("outliers.txt");
      std::vector<std::pair<uint, uint> >::iterator it;
@@ -146,10 +137,10 @@ void Scan::printOutliers(){
 }
 
 // Prints all hubs
-void Scan::printHubs(){
+void Scan::writeHubs(){
      //std::cout << "Hubs: " << std::endl;
      std::ofstream outfile("hubs.txt");
-     hmap::iterator mapIt;
+     hmap_uint_suint::iterator mapIt;
      std::set<uint>::iterator setIt;
      for (mapIt = hubs.begin(); mapIt != hubs.end(); ++mapIt) {
           //std::cout << mapIt->first << " ->";
@@ -166,10 +157,10 @@ void Scan::printHubs(){
 }
 
 // Prints everything
-void Scan::printAll(){
-     printClusters();
-     printHubs();
-     printOutliers();
+void Scan::writeAll(){
+     writeClusters();
+     writeHubs();
+     writeOutliers();
 }
 
 // Prints the graph
@@ -177,43 +168,40 @@ void Scan::printGraph(){
      g.print();
 }
 
-
+// TODO TESTAR
 // Calculates the similarity between two nodes
 float Scan::similarity(uint node1, uint node2){
      // Variables
-     std::set<uint> *n1, *n2;
-     std::set<uint> inter;
+     std::set<Edge> *n1, *n2;
+     std::set<Edge> inter;
      float divisor;
      n1 = g.getAdjacency(node1);
      n2 = g.getAdjacency(node2);
      // Calculate the intersection between  the edges' neighbors
      set_intersection(n1->begin(),n1->end(),
                n2->begin(), n2->end(),
-               std::insert_iterator< std::set<uint> >
+               std::insert_iterator< std::set<Edge> >
                (inter, inter.begin()));
      divisor = n1->size() * n2->size();
      divisor = sqrt(divisor);
-     /*
-     std::cout << "SIM(" << node1 << "," << node2 << ") = " << 
-          (inter.size()/(float)divisor) << std::endl;
-     */
      return (inter.size()/(float)divisor);
 }
 
+// TODO Testar
 // Returns the e-neighborhood of the given node
-std::set<uint> Scan::neighborhood(uint node, 
+std::set<Edge> Scan::neighborhood(uint node, 
           const float epsilon){
      // Sets up the e-neighborhood counter
      uint count = 0;
      // Get the nodes adjacency list
-     std::set<uint> *adj;
-     std::set<uint> nhood;
+     std::set<Edge> *adj;
+     std::set<Edge> nhood;
      adj = g.getAdjacency(node);
      // Verify the node' similarity with it's neighbors.
      // And yes, he will check similarity with itself...
-     std::set<uint>::iterator setIt;
+     std::set<Edge>::iterator setIt;
      for (setIt = adj->begin(); setIt != adj->end(); ++setIt) {
-          if (similarity(node,*setIt) >= epsilon) {
+          if (similarity(node,setIt->getNode()) >= epsilon) {
                //std:: cout << "Sim " << node << " " << *setIt
                //     << " = " << similarity(node,*setIt) << std::endl;
                nhood.insert(*setIt);
@@ -225,7 +213,7 @@ std::set<uint> Scan::neighborhood(uint node,
 
 // Verifies if a node is a core
 bool Scan::isCore(uint node, const float epsilon, const int mi){
-     std::set<uint> blah;
+     std::set<Edge> blah;
      blah = neighborhood(node, epsilon);
      if (blah.size() >= mi){
           return true;
@@ -240,11 +228,12 @@ int Scan::getNewClusterID() {
      return num_clusters;
 }
 
+// TODO Testar
 // Calculates the Direct Structure Reachability [DirREACH(v,w)] 
 // of a given node. Will return all w E N.
-std::set<uint> Scan::dirReach(uint v, const float epsilon, 
+std::set<Edge> Scan::dirReach(uint v, const float epsilon, 
           const int mi) {
-     std::set<uint> s;
+     std::set<Edge> s;
      if (isCore(v, epsilon, mi)) {
           s = neighborhood(v, epsilon);
      }
@@ -269,21 +258,22 @@ void Scan::addToCluster(uint node, uint clust) {
      g.setLabel(node, clust);
 }
 
-// Verifies if the node is a hub
-std::set<uint> Scan::isHub(uint node) {
+// TODO Testar
+// Used to verify if a node is a hub
+std::set<uint> Scan::getNeighborClusters(uint node) {
      // This set will be used to verify how many clusters
      // this node has edges with
      std::set<uint> numcl;
      // Get the nodes adjacency list
-     std::set<uint> *adj;
+     std::set<Edge> *adj;
      adj = g.getAdjacency(node);
-     std::set<uint>::iterator setIt;
+     std::set<Edge>::iterator setIt;
      uint clust;
      // Will store all clusters adjacent to node. the set will deal
      // with any repetition
      for (setIt = adj->begin(); setIt != adj->end(); ++setIt) {
-          if (node != *setIt) {
-               clust = g.getLabel(*setIt);
+          if (node != setIt->getNode()) {
+               clust = g.getLabel(setIt->getNode());
                if (clust > 0) numcl.insert(clust);
           }
      }
@@ -298,10 +288,11 @@ void Scan::buildAssortativityMatrix(float** e) {
           }
      }
      // Running through all clusters
-     hmap::iterator mapIt;
+     hmap_uint_suint::iterator mapIt;
      uint i,j;
-     std::set<uint> *adj;
-     std::set<uint>::iterator setIt, node;
+     std::set<Edge> *adj;
+     std::set<Edge>::iterator node;
+     std::set<uint>::iterator setIt;
      for (mapIt = clusters.begin(); mapIt != clusters.end(); ++mapIt) {
           i = mapIt->first;
           // This will iterate the cluster i. We must get every one
@@ -313,8 +304,8 @@ void Scan::buildAssortativityMatrix(float** e) {
                // Iterating the adjacency list of each cluster member
                for (node = adj->begin(); node != adj->end(); ++node) {
                     // No self loops, buddy!
-                    if (*setIt != *node) {
-                         j = g.getLabel(*node);
+                    if (*setIt != node->getNode()) {
+                         j = g.getLabel(node->getNode());
                          //e[i][j] += 1/(float)g.getNumEdges();
                          if (i == j) {
                               // Removing duplicated edges

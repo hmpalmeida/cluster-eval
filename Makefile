@@ -22,9 +22,12 @@ scan: scan.cpp scan.hpp
 utils: utils.cpp utils.hpp
 	$(CC) $(CPPFLAGS) -c utils.cpp utils.o
 
-teste: teste.cpp graph.o scan_graph.o utils.o edge.o
+teste: teste.cpp graph.o scan_graph.o utils.o edge.o scan.o
 	$(CC) $(CPPFLAGS) -c teste.cpp 
-	$(CC) $(CPPFLAGS) -o teste utils.o scan_graph.o teste.o edge.o graph.o
+	$(CC) $(CPPFLAGS) -o teste utils.o scan_graph.o teste.o edge.o graph.o scan.o
 
 clean:
 	rm *.o scan teste
+clear_results:
+	rm outliers.txt clusters.txt hubs.txt
+

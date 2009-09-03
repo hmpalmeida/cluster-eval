@@ -20,11 +20,11 @@ void Edge::setWeight(float w) {
      weight = w;
 }
 
-uint Edge::getNode() {
+uint Edge::getNode() const{
      return node;
 }
 
-float Edge::getWeight() {
+float Edge::getWeight() const{
      return weight;
 }
 

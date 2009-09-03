@@ -35,7 +35,7 @@ void runScan(float epsilon, int mi, char* graph) {
           std::cout << err << std::endl;
      }
      s.run(epsilon, mi);
-     s.printAll();
+     s.writeAll();
 }
 
 int main(int argc, char** argv){
