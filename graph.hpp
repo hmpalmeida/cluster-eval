@@ -16,6 +16,7 @@ class Graph{
      hmap graph_map;
      std::set<Edge>* getAdjacency(uint node);
      void readFile(std::string filename);
+     void readGmlFile(std::string filename);
      Graph(std::string filename);
      Graph();
      virtual ~Graph();

@@ -2,23 +2,141 @@
 #include <iostream>
 #include <exception>
 #include <stdio.h>
+#include <fstream>
+//#include <ifstream>
 
-// just an empty constructor
+/********************************************************************
+* just an empty constructor
+********************************************************************/
 Graph::Graph(){
 }
 
+/********************************************************************
+* Constructor that automatically loads the graph from a file
+********************************************************************/
 Graph::Graph(std::string filename){
-     readFile(filename);
+     if (filename.compare(filename.size()-4,4,".gml") == 0) {
+          readGmlFile(filename);
+     } else {
+          readFile(filename);
+     }
+}
+
+/********************************************************************
+* Reads a graph from a gml file
+*********************************************************************/
+void Graph::readGmlFile(std::string filename) {
+     // auxiliar vars
+     std::string attr;
+     std::string value;
+     bool directed = false;
+     std::ifstream file;
+     float weight;
+     int braces = 0, source, target;
+     
+     num_edges = 0;
+     
+     // opening file
+     file.open(filename.c_str());
+
+     if (file.is_open()) {
+          // Ignore everything untill we get the "graph" starting command
+          do {
+               file >> attr;
+          } while (attr != "graph");
+          // Graph definition has begun, now the next line must have a "["
+          file >> attr;
+          if (attr !=  "[") {
+               throw ("Wrong format. Expecting \"[\" after \"graph\".\n");
+          }
+          ++braces;
+          // Now begin reading the graph
+          while ((braces > 0) || (file.eof())) {
+               file >> attr;
+               if (attr == "directed") {
+                    // Control attribute. Register!
+                    file >> value;
+                    if (value == "1") {
+                         directed = true;
+                    }
+               } else if (attr == "node") {
+                    // Found a node definition. Everything must be 
+                    // inside braces
+                    file >> attr;
+                    if (attr != "[") {
+                         throw ("Wrong format. Expecting \"[\" after \"node\".\n");
+                    }
+                    ++braces;
+                    // Get one more line
+                    // fscanf(file, "%s %s", &attr, &value);
+                    file >> attr;
+                    while (attr != "]") {
+                         // For now, the node id is the only attribute 
+                         // we accept. We will skip anything else
+                         if (attr == "id") {
+                              file >> value;
+                              graph_map[atoi(value.c_str())] = NULL;
+                         }
+                         // Rinse. Repeat
+                         file >> attr;
+                    }
+                    --braces;
+                    continue;
+               } else if (attr == "edge") {
+                    // Found an edge definition. Everything must be 
+                    // inside braces
+                    file >> attr;
+                    // if (strcmp(attr, "[") != 0) {
+                    if (attr != "[") {
+                         throw ("Wrong format. Expecting \"[\" after \"edge\".\n");
+                    }
+                    ++braces;
+                    // Get one more line
+                    file >> attr;
+                    while (attr != "]") {
+                         if (attr == "source") {
+                              file >> value;
+                              source = atoi(value.c_str());
+                         } else if (attr == "target") {
+                              file >> value;
+                              target = atoi(value.c_str());
+                         } else if (attr == "value") {
+                              file >> value;
+                              weight = atof(value.c_str());
+                         }
+                         // Rinse. Repeat
+                         file >> attr;
+                    }
+                    // Adding the edge read
+                    addEdge(source, target, weight);
+                    if (!directed) addEdge(target, source, weight);
+                    ++num_edges;
+                    --braces;
+                    continue;
+               } else if (attr == "]") {
+                    --braces;
+               } else {
+                    throw ("Unknown term: ", attr);
+               }
+          }
+
+     }
+     if (braces != 0) {
+          throw ("Error: Brace mismatch.");
+     }
+     file.close();
 }
 
 
-// Expects a file formatted like this::
-// nodes (num_nodes) dir (1|0) weight (1|0)
-// node_id
-// ...
-// edges
-// node1 node2 (weight)
-// ...
+/********************************************************************
+* Expects a file formatted like this::
+* nodes (num_nodes) dir (1|0) weight (1|0)
+* node_id
+* ...
+* edges
+* node1 node2 (weight)
+* ...
+********************************************************************/
 void Graph::readFile(std::string filename){
      // auxiliar vars
      char tmp[10], dir[5], weig[10], directed, weighted;
@@ -90,8 +208,10 @@ void Graph::readFile(std::string filename){
 }
 
 
-// is necessary, add it both ways. Also, needs to use the "Edge" class
-// Add a DIRECTED edge to the graph. Must Add both ways if undirected
+/********************************************************************
+* is necessary, add it both ways. Also, needs to use the "Edge" class
+* Add a DIRECTED edge to the graph. Must Add both ways if undirected
+********************************************************************/
 void Graph::addEdge(uint node1, uint node2, float weight){
      // adding reference to the first node
      if (graph_map[node1] == NULL) {
@@ -114,25 +234,35 @@ Graph::~Graph() {
      }
 }
 
-// Print the vector. Mainly for testing purposes
+/********************************************************************
+* Print the vector. Mainly for testing purposes
+********************************************************************/
 void Graph::print() {
      hmap::iterator mapIt;
      std::set<Edge>::iterator setIt;
      for (mapIt = graph_map.begin(); mapIt != graph_map.end(); ++mapIt) {
           std::cout << mapIt->first << " ->";
-          for (setIt = mapIt->second->begin();
-               setIt != mapIt->second->end();
-               ++setIt) {
-               std::cout << " " << setIt->toString();
+          if (mapIt->second != NULL) {
+               for (setIt = mapIt->second->begin();
+                    setIt != mapIt->second->end();
+                    ++setIt) {
+                    std::cout << " " << setIt->toString();
+               }
           }
           std::cout << std::endl;
      }
 }
 
+/********************************************************************
+* Returns the adjacency list
+********************************************************************/
 std::set<Edge>* Graph::getAdjacency(uint node){
      return graph_map[node];
 }
 
+/********************************************************************
+* Rteurns the graph's number of edges
+********************************************************************/
 uint Graph::getNumEdges() {
      return num_edges;
 }
