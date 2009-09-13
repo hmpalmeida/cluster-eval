@@ -17,16 +17,24 @@ Scan::Scan(std::string filename){
 }
 
 void Scan::loadGraph(std::string filename){
-     try {
-          g.readFile(filename);
-     } catch (std::string err) {
-          std::cout << err << std::endl;
+     if (filename.compare(filename.size()-4,4,".gml") == 0) {
+          try {
+               g.readGmlFile(filename);
+          } catch (std::string err) {
+               std::cout << err << std::endl;
+          }
+     } else {
+          try {
+               g.readFile(filename);
+          } catch (std::string err) {
+               std::cout << err << std::endl;
+          }
      }
 }
 
 // FIXME Must use the Edge class... Probably :P
 // Main SCAN algorithm
-void Scan::run(const float epsilon, const int mi){
+void Scan::run(const double epsilon, const int mi){
      // All vertices begin unclassified
      // So let's begin. We will iterate the labels list. In no moment
      // can a label became "unclassified" again, so this loop will 
@@ -170,11 +178,11 @@ void Scan::printGraph(){
 
 // TODO TESTAR
 // Calculates the similarity between two nodes
-float Scan::similarity(uint node1, uint node2){
+double Scan::similarity(uint node1, uint node2){
      // Variables
      std::set<Edge> *n1, *n2;
      std::set<Edge> inter;
-     float divisor;
+     double divisor;
      n1 = g.getAdjacency(node1);
      n2 = g.getAdjacency(node2);
      // Calculate the intersection between  the edges' neighbors
@@ -184,13 +192,13 @@ float Scan::similarity(uint node1, uint node2){
                (inter, inter.begin()));
      divisor = n1->size() * n2->size();
      divisor = sqrt(divisor);
-     return (inter.size()/(float)divisor);
+     return (inter.size()/(double)divisor);
 }
 
 // TODO Testar
 // Returns the e-neighborhood of the given node
 std::set<Edge> Scan::neighborhood(uint node, 
-          const float epsilon){
+          const double epsilon){
      // Sets up the e-neighborhood counter
      uint count = 0;
      // Get the nodes adjacency list
@@ -212,7 +220,7 @@ std::set<Edge> Scan::neighborhood(uint node,
 }
 
 // Verifies if a node is a core
-bool Scan::isCore(uint node, const float epsilon, const int mi){
+bool Scan::isCore(uint node, const double epsilon, const int mi){
      std::set<Edge> blah;
      blah = neighborhood(node, epsilon);
      if (blah.size() >= mi){
@@ -231,7 +239,7 @@ int Scan::getNewClusterID() {
 // TODO Testar
 // Calculates the Direct Structure Reachability [DirREACH(v,w)] 
 // of a given node. Will return all w E N.
-std::set<Edge> Scan::dirReach(uint v, const float epsilon, 
+std::set<Edge> Scan::dirReach(uint v, const double epsilon, 
           const int mi) {
      std::set<Edge> s;
      if (isCore(v, epsilon, mi)) {
@@ -306,13 +314,13 @@ void Scan::buildAssortativityMatrix(float** e) {
                     // No self loops, buddy!
                     if (*setIt != node->getNode()) {
                          j = g.getLabel(node->getNode());
-                         //e[i][j] += 1/(float)g.getNumEdges();
+                         //e[i][j] += 1/(double)g.getNumEdges();
                          if (i == j) {
                               // Removing duplicated edges
-                              e[i][j] += 1/(float)(g.getNumEdges()*2.0);
+                              e[i][j] += 1/(double)(g.getNumEdges()*2.0);
                          } else {
                               // No duplicates here
-                              e[i][j] += 1/(float)g.getNumEdges();
+                              e[i][j] += 1/(double)g.getNumEdges();
                          }
                     }
                }

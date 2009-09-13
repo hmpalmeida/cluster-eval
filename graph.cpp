@@ -3,18 +3,23 @@
 #include <exception>
 #include <stdio.h>
 #include <fstream>
+#include <math.h>
 //#include <ifstream>
 
 /********************************************************************
 * just an empty constructor
 ********************************************************************/
 Graph::Graph(){
+     greatest_weight = -999999.0;
+     smallest_weight = 999999.0;
 }
 
 /********************************************************************
 * Constructor that automatically loads the graph from a file
 ********************************************************************/
 Graph::Graph(std::string filename){
+     greatest_weight = -9999.0;
+     smallest_weight = 9999.0;
      if (filename.compare(filename.size()-4,4,".gml") == 0) {
           readGmlFile(filename);
      } else {
@@ -31,7 +36,7 @@ void Graph::readGmlFile(std::string filename) {
      std::string value;
      bool directed = false;
      std::ifstream file;
-     float weight;
+     double weight;
      int braces = 0, source, target;
      
      num_edges = 0;
@@ -125,6 +130,8 @@ void Graph::readGmlFile(std::string filename) {
           throw ("Error: Brace mismatch.");
      }
      file.close();
+     // Normalize weights
+     normalizeWeights();
 }
 
 
@@ -142,7 +149,7 @@ void Graph::readFile(std::string filename){
      char tmp[10], dir[5], weig[10], directed, weighted;
      uint auxint, auxint2;
      FILE * file;
-     float auxfloat;
+     double auxdouble;
      
      num_edges = 0;
 
@@ -188,19 +195,21 @@ void Graph::readFile(std::string filename){
                }
           } else if ((weighted == '1') && (directed == '0')) {
                while (!feof(file)) {
-                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxfloat);
-                    addEdge(auxint, auxint2, auxfloat);
-                    addEdge(auxint2, auxint, auxfloat);
+                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxdouble);
+                    addEdge(auxint, auxint2, auxdouble);
+                    addEdge(auxint2, auxint, auxdouble);
                     ++num_edges;
                }
           } else {
                while (!feof(file)) {
-                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxfloat);
-                    addEdge(auxint, auxint2, auxfloat);
+                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxdouble);
+                    addEdge(auxint, auxint2, auxdouble);
                     ++num_edges;
                }
           }
           fclose(file);
+          // Normalize weights
+          normalizeWeights();
      } else {
           // File did not open... report
           throw ("Error opening file.");
@@ -212,7 +221,7 @@ void Graph::readFile(std::string filename){
 * is necessary, add it both ways. Also, needs to use the "Edge" class
 * Add a DIRECTED edge to the graph. Must Add both ways if undirected
 ********************************************************************/
-void Graph::addEdge(uint node1, uint node2, float weight){
+void Graph::addEdge(uint node1, uint node2, double weight){
      // adding reference to the first node
      if (graph_map[node1] == NULL) {
           // Set yet not created
@@ -223,6 +232,13 @@ void Graph::addEdge(uint node1, uint node2, float weight){
      e.setNode(node2);
      e.setWeight(weight);
      graph_map[node1]->insert(e);
+     // Evaulate if it has the greatest or smallest weight
+     if (weight > greatest_weight) {
+          greatest_weight = weight;
+     }
+     if (weight < smallest_weight) {
+          smallest_weight = weight;
+     }
 }
 
 // Destructor
@@ -261,8 +277,38 @@ std::set<Edge>* Graph::getAdjacency(uint node){
 }
 
 /********************************************************************
-* Rteurns the graph's number of edges
+* Returns the graph's number of edges
 ********************************************************************/
 uint Graph::getNumEdges() {
      return num_edges;
+}
+
+/********************************************************************
+* Normalizes the edge weights, if they exist
+********************************************************************/
+void Graph::normalizeWeights() {
+     // If the graph is weighted
+     if ((greatest_weight != 0) && (smallest_weight != 0)) {
+          hmap::iterator mapIt;
+          std::set<Edge>::iterator setIt;
+          for (mapIt = graph_map.begin(); mapIt != graph_map.end(); ++mapIt) {
+               if (mapIt->second != NULL) {
+                    for (setIt = mapIt->second->begin();
+                              setIt != mapIt->second->end();
+                              ++setIt) {
+                         double w;
+                         w = setIt->getWeight();
+                         // If there are negative weights, add the absolute
+                         // value of the lowest weight to all edges
+                         if (smallest_weight < 0) {
+                              w += fabs(smallest_weight);
+                         }
+                         // Normalize
+                         w = w/(double)greatest_weight;
+                         // FIXME: Tem que funcionar!
+                         //setIt->setWeight(w);                      
+                    }
+               }
+          }
+     }
 }

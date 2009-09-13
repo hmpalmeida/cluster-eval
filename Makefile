@@ -1,5 +1,5 @@
 CC = g++
-CPPFLAGS = -g
+CPPFLAGS = -g -Wno-deprecated
 
 all: utils.o graph.o main.o scan.o scan_graph.o edge.o
 	$(CC) $(CPPFLAGS) -o scan utils.o main.o graph.o scan.o scan_graph.o edge.o

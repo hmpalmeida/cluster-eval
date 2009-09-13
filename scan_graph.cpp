@@ -11,7 +11,7 @@ void ScanGraph::readGmlFile(std::string filename) {
      std::string value;
      bool directed = false;
      std::ifstream file;
-     float weight;
+     double weight;
      int braces = 0, source, target;
      
      num_edges = 0;
@@ -114,6 +114,8 @@ void ScanGraph::readGmlFile(std::string filename) {
           throw ("Error: Brace mismatch.");
      }
      file.close();
+     // Normalize weights
+     normalizeWeights();
 }
 
 
@@ -132,7 +134,7 @@ void ScanGraph::readFile(std::string filename){
      char tmp[10], dir[5], weig[10], directed, weighted;
      uint auxint, auxint2;
      FILE * file;
-     float auxfloat;
+     double auxdouble;
      
      num_edges = 0;
 
@@ -186,19 +188,21 @@ void ScanGraph::readFile(std::string filename){
                }
           } else if ((weighted == '1') && (directed == '0')) {
                while (!feof(file)) {
-                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxfloat);
-                    addEdge(auxint, auxint2, auxfloat);
-                    addEdge(auxint2, auxint, auxfloat);
+                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxdouble);
+                    addEdge(auxint, auxint2, auxdouble);
+                    addEdge(auxint2, auxint, auxdouble);
                     ++num_edges;
                }
           } else {
                while (!feof(file)) {
-                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxfloat);
-                    addEdge(auxint, auxint2, auxfloat);
+                    fscanf(file,"%d %d %f",&auxint,&auxint2, &auxdouble);
+                    addEdge(auxint, auxint2, auxdouble);
                     ++num_edges;
                }
           }
           fclose(file);
+          // Normalize weights
+          normalizeWeights();
      } else {
           // File did not open... report
           throw ("Error opening file.");
