@@ -296,8 +296,12 @@ void Graph::normalizeWeights() {
                     for (setIt = mapIt->second->begin();
                               setIt != mapIt->second->end();
                               ++setIt) {
+                         // FIXME Isso tá feio pra caralho. É preciso descobrir
+                         // o porque do iterador estar insistindo em dizer que
+                         // é const quando ele claramente não o é!
+                         Edge* e = (Edge*)&(*setIt);
                          double w;
-                         w = setIt->getWeight();
+                         w = e->getWeight();
                          // If there are negative weights, add the absolute
                          // value of the lowest weight to all edges
                          if (smallest_weight < 0) {
@@ -305,8 +309,7 @@ void Graph::normalizeWeights() {
                          }
                          // Normalize
                          w = w/(double)greatest_weight;
-                         // FIXME: Tem que funcionar!
-                         //setIt->setWeight(w);                      
+                         e->setWeight(w);                      
                     }
                }
           }

@@ -1,7 +1,7 @@
-#include "scan.hpp"
+#include "graph.hpp"
 #include <iostream>
 
 int main() {
-     Scan s("data/astro-ph.gml");
-     s.run(0.6,2);
+     Graph g("data/astro-ph.gml");
+     g.print();
 }

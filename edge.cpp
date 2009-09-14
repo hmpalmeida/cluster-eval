@@ -16,7 +16,7 @@ void Edge::setNode(uint n) {
      node = n;
 }
 
-void Edge::setWeight(float w) {
+void Edge::setWeight(float w){
      weight = w;
 }
 
