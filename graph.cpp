@@ -4,10 +4,9 @@
 #include <stdio.h>
 #include <fstream>
 #include <math.h>
-//#include <ifstream>
 
 /********************************************************************
-* just an empty constructor
+* Just an empty constructor
 ********************************************************************/
 Graph::Graph(){
      greatest_weight = -999999.0;
@@ -73,7 +72,6 @@ void Graph::readGmlFile(std::string filename) {
                     }
                     ++braces;
                     // Get one more line
-                    // fscanf(file, "%s %s", &attr, &value);
                     file >> attr;
                     while (attr != "]") {
                          // For now, the node id is the only attribute 
@@ -91,7 +89,6 @@ void Graph::readGmlFile(std::string filename) {
                     // Found an edge definition. Everything must be 
                     // inside braces
                     file >> attr;
-                    // if (strcmp(attr, "[") != 0) {
                     if (attr != "[") {
                          throw ("Wrong format. Expecting \"[\" after \"edge\".\n");
                     }

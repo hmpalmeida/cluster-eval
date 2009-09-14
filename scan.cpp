@@ -7,15 +7,24 @@
 #include <fstream>
 #include <utility>
 
+/********************************************************************
+* Constructor
+********************************************************************/
 Scan::Scan(){
      num_clusters = 0;
 }
 
+/********************************************************************
+* Other constructor
+********************************************************************/
 Scan::Scan(std::string filename){
      num_clusters = 0;
      loadGraph(filename);
 }
 
+/********************************************************************
+* Loads a graph. Will decide which method should be used
+********************************************************************/
 void Scan::loadGraph(std::string filename){
      if (filename.compare(filename.size()-4,4,".gml") == 0) {
           try {
@@ -32,8 +41,9 @@ void Scan::loadGraph(std::string filename){
      }
 }
 
-// FIXME Must use the Edge class... Probably :P
-// Main SCAN algorithm
+/********************************************************************
+* Main SCAN algorithm
+********************************************************************/
 void Scan::run(const double epsilon, const int mi){
      // All vertices begin unclassified
      // So let's begin. We will iterate the labels list. In no moment
@@ -104,7 +114,9 @@ void Scan::run(const double epsilon, const int mi){
      std::cout << std::endl;
 }
 
-// Destructor
+/********************************************************************
+* Destructor
+********************************************************************/
 Scan::~Scan() {
      hmap_uint_suint::const_iterator it;
      for (it = clusters.begin(); it != clusters.end(); ++it) {
@@ -115,7 +127,9 @@ Scan::~Scan() {
      }
 }
 
-// Prints all clusters. For testing
+/********************************************************************
+* Prints all clusters. For testing
+********************************************************************/
 void Scan::writeClusters(){
      std::ofstream outfile("clusters.txt");
      hmap_uint_suint::iterator mapIt;
@@ -132,7 +146,9 @@ void Scan::writeClusters(){
      outfile.close();
 }
 
-// Prints all outliers
+/********************************************************************
+* Prints all outliers
+********************************************************************/
 void Scan::writeOutliers(){
      //std::cout << "Outliers: " << std::endl;
      std::ofstream outfile("outliers.txt");
@@ -144,7 +160,9 @@ void Scan::writeOutliers(){
      outfile.close();
 }
 
-// Prints all hubs
+/********************************************************************
+* Prints all hubs
+********************************************************************/
 void Scan::writeHubs(){
      //std::cout << "Hubs: " << std::endl;
      std::ofstream outfile("hubs.txt");
@@ -164,39 +182,25 @@ void Scan::writeHubs(){
      outfile.close();
 }
 
-// Prints everything
+/********************************************************************
+* Prints everything
+********************************************************************/
 void Scan::writeAll(){
      writeClusters();
      writeHubs();
      writeOutliers();
 }
 
-// Prints the graph
+/********************************************************************
+* Prints the graph
+********************************************************************/
 void Scan::printGraph(){
      g.print();
 }
 
-// TODO TESTAR
-// Calculates the similarity between two nodes
-double Scan::similarity(uint node1, uint node2){
-     // Variables
-     std::set<Edge> *n1, *n2;
-     std::set<Edge> inter;
-     double divisor;
-     n1 = g.getAdjacency(node1);
-     n2 = g.getAdjacency(node2);
-     // Calculate the intersection between  the edges' neighbors
-     set_intersection(n1->begin(),n1->end(),
-               n2->begin(), n2->end(),
-               std::insert_iterator< std::set<Edge> >
-               (inter, inter.begin()));
-     divisor = n1->size() * n2->size();
-     divisor = sqrt(divisor);
-     return (inter.size()/(double)divisor);
-}
-
-// TODO Testar
-// Returns the e-neighborhood of the given node
+/********************************************************************
+* Returns the e-neighborhood of the given node
+********************************************************************/
 std::set<Edge> Scan::neighborhood(uint node, 
           const double epsilon){
      // Sets up the e-neighborhood counter
@@ -219,7 +223,9 @@ std::set<Edge> Scan::neighborhood(uint node,
 
 }
 
-// Verifies if a node is a core
+/********************************************************************
+* Verifies if a node is a core
+********************************************************************/
 bool Scan::isCore(uint node, const double epsilon, const int mi){
      std::set<Edge> blah;
      blah = neighborhood(node, epsilon);
@@ -230,15 +236,18 @@ bool Scan::isCore(uint node, const double epsilon, const int mi){
      }
 }
 
-// Gets a new... aw, why bother?
+/********************************************************************
+* Gets a new... aw, why bother?
+********************************************************************/
 int Scan::getNewClusterID() {
      ++num_clusters;
      return num_clusters;
 }
 
-// TODO Testar
-// Calculates the Direct Structure Reachability [DirREACH(v,w)] 
-// of a given node. Will return all w E N.
+/********************************************************************
+* Calculates the Direct Structure Reachability [DirREACH(v,w)] 
+* of a given node. Will return all w E N.
+********************************************************************/
 std::set<Edge> Scan::dirReach(uint v, const double epsilon, 
           const int mi) {
      std::set<Edge> s;
@@ -248,12 +257,18 @@ std::set<Edge> Scan::dirReach(uint v, const double epsilon,
      return s;
 }
 
+/********************************************************************
+* Creates a new hub
+********************************************************************/
 void Scan::addHub(uint node, std::set<uint> clusts) {
      //Creates the new hub
      hubs[node] = new std::set<uint>;
      hubs[node]->insert(clusts.begin(), clusts.end());
 }
 
+/********************************************************************
+* Add a node to a cluster
+********************************************************************/
 void Scan::addToCluster(uint node, uint clust) {
      // Verify if it is a new cluster
      if (clusters[clust] == NULL) {
@@ -266,8 +281,9 @@ void Scan::addToCluster(uint node, uint clust) {
      g.setLabel(node, clust);
 }
 
-// TODO Testar
-// Used to verify if a node is a hub
+/********************************************************************
+* Used to verify if a node is a hub
+********************************************************************/
 std::set<uint> Scan::getNeighborClusters(uint node) {
      // This set will be used to verify how many clusters
      // this node has edges with
@@ -288,6 +304,82 @@ std::set<uint> Scan::getNeighborClusters(uint node) {
      return numcl;
 }
 
+
+/********************************************************************
+* Similarity functions
+********************************************************************/
+
+/********************************************************************
+* Original SCAN similarity function
+********************************************************************/
+double Scan::similarity(uint node1, uint node2){
+     // Variables
+     std::set<Edge> *n1, *n2;
+     std::set<Edge> inter;
+     double divisor;
+     n1 = g.getAdjacency(node1);
+     n2 = g.getAdjacency(node2);
+     // Calculate the intersection between  the edges' neighbors
+     set_intersection(n1->begin(),n1->end(),
+               n2->begin(), n2->end(),
+               std::insert_iterator< std::set<Edge> >
+               (inter, inter.begin()));
+     divisor = n1->size() * n2->size();
+     divisor = sqrt(divisor);
+     return (inter.size()/(double)divisor);
+}
+
+/********************************************************************
+* Adapted SCAN similarity function. No self links required
+********************************************************************/
+double Scan::noSelfLoopSimilarity(uint node1, uint node2){
+     // Variables
+     std::set<Edge> *n1, *n2;
+     std::set<Edge> inter;
+     double divisor;
+     n1 = g.getAdjacency(node1);
+     n2 = g.getAdjacency(node2);
+     // Calculate the intersection between  the edges' neighbors
+     set_intersection(n1->begin(),n1->end(),
+               n2->begin(), n2->end(),
+               std::insert_iterator< std::set<Edge> >
+               (inter, inter.begin()));
+     divisor = n1->size() * n2->size();
+     divisor = sqrt(divisor);
+     return (inter.size()+1/(double)divisor);
+}
+
+/********************************************************************
+* Simple weighted similarity function
+********************************************************************/
+double Scan::weightedSimilarity(uint node1, uint node2){
+     // Não faço a menor idéia de como fazer isso!
+     // Variables
+     std::set<Edge> *n1, *n2;
+     std::set<Edge> inter;
+     double divisor;
+     n1 = g.getAdjacency(node1);
+     n2 = g.getAdjacency(node2);
+     // Calculate the intersection between  the edges' neighbors
+     set_intersection(n1->begin(),n1->end(),
+               n2->begin(), n2->end(),
+               std::insert_iterator< std::set<Edge> >
+               (inter, inter.begin()));
+     divisor = n1->size() * n2->size();
+     divisor = sqrt(divisor);
+     return (inter.size()/(double)divisor);
+}
+
+
+
+
+/********************************************************************
+* Modularity Stuff
+********************************************************************/
+
+/********************************************************************
+* Builds the assortativity marix used in modularity calculations
+********************************************************************/
 void Scan::buildAssortativityMatrix(float** e) {
      // First, let's "zero" it
      for (int i = 0; i <= num_clusters; ++i) {
@@ -329,12 +421,14 @@ void Scan::buildAssortativityMatrix(float** e) {
      // Matrix e fully calculated
 }
 
-// Calculates the modularity for the clustering obtained. Obviously,
-// The clustering must have already been made.
-// IMPORTANT! We have a "virtual" cluster 0, that represents all hubs
-// and outliers. It will exist here only so that we don't lose coherence
-// of proportions, but e_{0,0} SHOULD NOT be considered for the trace Tr e.
-// ... (I think)
+/********************************************************************
+* Calculates the modularity for the clustering obtained. Obviously,
+* The clustering must have already been made.
+* IMPORTANT! We have a "virtual" cluster 0, that represents all hubs
+* and outliers. It will exist here only so that we don't lose coherence
+* of proportions, but e_{0,0} SHOULD NOT be considered for the trace Tr e.
+* ... (I think)
+********************************************************************/
 float Scan::getModularity() {
      // 1 - Generate Matrix e, where:
      // e_{i,j} = (edges linking ci to cj)/(all edges in G)

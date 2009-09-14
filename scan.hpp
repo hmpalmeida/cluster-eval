@@ -16,6 +16,8 @@ class Scan{
           // Methods
           bool isCore(uint node, const double epsilon, const int mi);
           double similarity(uint node1, uint node2);
+          double noSelfLoopSimilarity(uint node1, uint node2);
+          double weightedSimilarity(uint node1, uint node2);
           int getNewClusterID();
           std::set<Edge> dirReach(uint v, 
                     const double epsilon, const int mi);
