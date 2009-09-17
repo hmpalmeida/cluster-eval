@@ -29,6 +29,7 @@ class Scan{
           double scanSim(uint node1, uint node2);
           double noSelfLoopSim(uint node1, uint node2);
           double weightedSim(uint node1, uint node2);
+          std::string generateFilename(const double epsilon, const int mi);
      public:
           void run(const double epsilon, const int mi);
           Scan();
@@ -37,10 +38,10 @@ class Scan{
           void loadGraph(std::string filename);
           ~Scan();
           void setSimFunction(uint simi_type);
-          void writeAll();
-          void writeClusters();
-          void writeHubs();
+          void writeAll(const double epsilon, const int mi);
+          void writeClusters(std::string name);
+          void writeHubs(std::string name);
+          void writeOutliers(std::string name);
           void printGraph();
-          void writeOutliers();
           float getModularity();
 };

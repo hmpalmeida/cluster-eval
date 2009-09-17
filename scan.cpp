@@ -151,11 +151,22 @@ Scan::~Scan() {
      }
 }
 
+
+/********************************************************************
+* Gathers data to form a useful output filename
+********************************************************************/
+std::string Scan::generateFilename(const double epsilon, const int mi) {
+     std::string name;
+     name = "results/epsilon-" + to_string(epsilon) + "_mi-" + 
+          to_string(mi) + "_sim-" + to_string(type) + "_";
+     return name;
+}
+
 /********************************************************************
 * Prints all clusters. For testing
 ********************************************************************/
-void Scan::writeClusters(){
-     std::ofstream outfile("clusters.txt");
+void Scan::writeClusters(std::string name){
+     std::ofstream outfile(name.c_str());
      hmap_uint_suint::iterator mapIt;
      std::set<uint>::iterator setIt;
      for (mapIt = clusters.begin(); mapIt != clusters.end(); ++mapIt) {
@@ -173,9 +184,9 @@ void Scan::writeClusters(){
 /********************************************************************
 * Prints all outliers
 ********************************************************************/
-void Scan::writeOutliers(){
+void Scan::writeOutliers(std::string name){
      //std::cout << "Outliers: " << std::endl;
-     std::ofstream outfile("outliers.txt");
+     std::ofstream outfile(name.c_str());
      std::vector<std::pair<uint, uint> >::iterator it;
      for (it = outliers.begin(); it != outliers.end();++it){
           //std::cout << *it << "\t";
@@ -187,9 +198,9 @@ void Scan::writeOutliers(){
 /********************************************************************
 * Prints all hubs
 ********************************************************************/
-void Scan::writeHubs(){
+void Scan::writeHubs(std::string name){
      //std::cout << "Hubs: " << std::endl;
-     std::ofstream outfile("hubs.txt");
+     std::ofstream outfile(name.c_str());
      hmap_uint_suint::iterator mapIt;
      std::set<uint>::iterator setIt;
      for (mapIt = hubs.begin(); mapIt != hubs.end(); ++mapIt) {
@@ -209,10 +220,12 @@ void Scan::writeHubs(){
 /********************************************************************
 * Prints everything
 ********************************************************************/
-void Scan::writeAll(){
-     writeClusters();
-     writeHubs();
-     writeOutliers();
+void Scan::writeAll(const double epsilon, const int mi){
+     std::string name;
+     name = generateFilename(epsilon, mi);
+     writeClusters(name + "clusters.txt");
+     writeHubs(name + "hubs.txt");
+     writeOutliers(name + "outliers.txt");
 }
 
 /********************************************************************

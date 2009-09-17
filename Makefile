@@ -27,7 +27,11 @@ teste: teste.cpp graph.o scan_graph.o utils.o edge.o scan.o
 	$(CC) $(CPPFLAGS) -o teste utils.o scan_graph.o teste.o edge.o graph.o scan.o
 
 clean:
-	rm *.o scan teste
+	rm *.o scan
+
+clean_teste:
+	rm *.o scan
+
 clear_results:
-	rm outliers.txt clusters.txt hubs.txt
+	rm results/*outliers.txt results/*clusters.txt results/*hubs.txt
 
