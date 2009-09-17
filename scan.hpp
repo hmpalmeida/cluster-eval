@@ -13,11 +13,9 @@ class Scan{
           hmap_uint_suint hubs;
           uint num_clusters;
           ScanGraph g;
+          uint type; // Which similarity function to use
           // Methods
           bool isCore(uint node, const double epsilon, const int mi);
-          double similarity(uint node1, uint node2);
-          double noSelfLoopSimilarity(uint node1, uint node2);
-          double weightedSimilarity(uint node1, uint node2);
           int getNewClusterID();
           std::set<Edge> dirReach(uint v, 
                     const double epsilon, const int mi);
@@ -27,12 +25,18 @@ class Scan{
           std::set<Edge> neighborhood(uint node, 
                     const double epsilon);
           void buildAssortativityMatrix(float** e);
+          double similarity(uint node1, uint node2);
+          double scanSim(uint node1, uint node2);
+          double noSelfLoopSim(uint node1, uint node2);
+          double weightedSim(uint node1, uint node2);
      public:
           void run(const double epsilon, const int mi);
           Scan();
-          Scan(std::string filename);
+          Scan(uint t);
+          Scan(uint t, std::string filename);
           void loadGraph(std::string filename);
           ~Scan();
+          void setSimFunction(uint simi_type);
           void writeAll();
           void writeClusters();
           void writeHubs();

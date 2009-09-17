@@ -11,8 +11,8 @@ class ScanGraph: public Graph {
           //   0   = non-member
           // n > 0 = belongs to cluster n
           hmap_ii label;
-          void readFile(std::string filename);
-          void readGmlFile(std::string filename);
+          void readFile(std::string filename, bool self_loops = true);
+          void readGmlFile(std::string filename, bool self_loops = true);
           ScanGraph();
           ScanGraph(std::string filename);
           long getLabel(uint node);

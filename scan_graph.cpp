@@ -5,7 +5,7 @@
 /********************************************************************
 * Reads a graph from a gml file
 *********************************************************************/
-void ScanGraph::readGmlFile(std::string filename) {
+void ScanGraph::readGmlFile(std::string filename, bool self_loops) {
      // auxiliar vars
      std::string attr;
      std::string value;
@@ -64,7 +64,10 @@ void ScanGraph::readGmlFile(std::string filename) {
                               // of a self loop? I never liked this, so maybe
                               // this is one more reason to remove it 
                               // altogether :D
-                              addEdge(atoi(value.c_str()), atoi(value.c_str()));
+                              if (self_loops) {
+                                   addEdge(atoi(value.c_str()), 
+                                             atoi(value.c_str()));
+                              }
                          }
                          // Rinse. Repeat
                          file >> attr;
@@ -129,7 +132,7 @@ void ScanGraph::readGmlFile(std::string filename) {
 * node1 node2 (weight)
 * ...
 ********************************************************************/
-void ScanGraph::readFile(std::string filename){
+void ScanGraph::readFile(std::string filename, bool self_loops){
      // auxiliar vars
      char tmp[10], dir[5], weig[10], directed, weighted;
      uint auxint, auxint2;
@@ -164,7 +167,9 @@ void ScanGraph::readFile(std::string filename){
                // TODO the problem now is: what is the weight of a self loop?
                // I never liked this, so maybe this is one more reason to 
                // remove it altogether :D
-               addEdge(auxint, auxint);
+               if (self_loops) {
+                    addEdge(auxint, auxint);
+               }
 
           }
           // and now, the edges

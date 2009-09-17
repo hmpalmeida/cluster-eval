@@ -7,34 +7,58 @@
 #include <fstream>
 #include <utility>
 
+
 /********************************************************************
 * Constructor
 ********************************************************************/
 Scan::Scan(){
      num_clusters = 0;
+     type = 1;
+}
+
+/********************************************************************
+* Constructor
+********************************************************************/
+Scan::Scan(uint t){
+     num_clusters = 0;
+     type = t;
 }
 
 /********************************************************************
 * Other constructor
 ********************************************************************/
-Scan::Scan(std::string filename){
+Scan::Scan(uint t, std::string filename){
      num_clusters = 0;
+     type = t;
      loadGraph(filename);
+}
+
+/********************************************************************
+* Sets the similarity function to be used
+********************************************************************/
+void Scan::setSimFunction(uint t) {
+     type = t;
 }
 
 /********************************************************************
 * Loads a graph. Will decide which method should be used
 ********************************************************************/
 void Scan::loadGraph(std::string filename){
+     bool sloops = true;
+     // This must change if we decide to remove self loops in other 
+     // similarity functions
+     if (type == 2) {
+          sloops = false;
+     }
      if (filename.compare(filename.size()-4,4,".gml") == 0) {
           try {
-               g.readGmlFile(filename);
+               g.readGmlFile(filename, sloops);
           } catch (std::string err) {
                std::cout << err << std::endl;
           }
      } else {
           try {
-               g.readFile(filename);
+               g.readFile(filename, sloops);
           } catch (std::string err) {
                std::cout << err << std::endl;
           }
@@ -309,10 +333,37 @@ std::set<uint> Scan::getNeighborClusters(uint node) {
 * Similarity functions
 ********************************************************************/
 
+// TODO Vamos fazer diferente. Deixa a chamada de similarity para não 
+// ter que mudar tudo e dentro dela chamar a função desejada.
+
 /********************************************************************
 * Original SCAN similarity function
 ********************************************************************/
 double Scan::similarity(uint node1, uint node2){
+     double sim = 0.0;
+     switch (type) {
+          case 1:
+               // Traditional SCAN
+               sim = scanSim(node1, node2);
+               break;
+          case 2:
+               // SCAN without self loops
+               sim = noSelfLoopSim(node1, node2);
+               break;
+          case 3:
+               // Weighted SCAN
+               sim = weightedSim(node1, node2);
+               break;
+          default:
+               throw "Unknown similarity function.\n";
+     }
+     return sim;
+}
+
+/********************************************************************
+* Original SCAN similarity function
+********************************************************************/
+double Scan::scanSim(uint node1, uint node2){
      // Variables
      std::set<Edge> *n1, *n2;
      std::set<Edge> inter;
@@ -332,7 +383,7 @@ double Scan::similarity(uint node1, uint node2){
 /********************************************************************
 * Adapted SCAN similarity function. No self links required
 ********************************************************************/
-double Scan::noSelfLoopSimilarity(uint node1, uint node2){
+double Scan::noSelfLoopSim(uint node1, uint node2){
      // Variables
      std::set<Edge> *n1, *n2;
      std::set<Edge> inter;
@@ -352,7 +403,7 @@ double Scan::noSelfLoopSimilarity(uint node1, uint node2){
 /********************************************************************
 * Simple weighted similarity function
 ********************************************************************/
-double Scan::weightedSimilarity(uint node1, uint node2){
+double Scan::weightedSim(uint node1, uint node2){
      // Não faço a menor idéia de como fazer isso!
      // Variables
      std::set<Edge> *n1, *n2;
