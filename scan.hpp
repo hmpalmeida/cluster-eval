@@ -25,6 +25,7 @@ class Scan{
           std::set<Edge> neighborhood(uint node, 
                     const double epsilon);
           void buildAssortativityMatrix(float** e);
+          double getEdgeWeight(uint node1, uint node2);
           double similarity(uint node1, uint node2);
           double scanSim(uint node1, uint node2);
           double noSelfLoopSim(uint node1, uint node2);

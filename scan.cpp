@@ -341,6 +341,13 @@ std::set<uint> Scan::getNeighborClusters(uint node) {
      return numcl;
 }
 
+/********************************************************************
+* Returns the weight of the edge between two nodes
+********************************************************************/
+// TODO Falta faezr isso e depois colocar mais formas de calcular a 
+// similaridade. Depois idsso, testar os resultados de alguma forma.
+double Scan::getEdgeWeight(uint node1, uint node2) {
+}
 
 /********************************************************************
 * Similarity functions
@@ -431,7 +438,10 @@ double Scan::weightedSim(uint node1, uint node2){
                (inter, inter.begin()));
      divisor = n1->size() * n2->size();
      divisor = sqrt(divisor);
-     return (inter.size()/(double)divisor);
+     divisor = (inter.size()/(double)divisor);
+     // Ou seja, média simples entre a similaridade tradicional e o peso
+     // da aresta entre os vértices
+     return (divisor + getEdgeWeight(node1, node2))/2.0;
 }
 
 
