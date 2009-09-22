@@ -30,7 +30,7 @@ clean:
 	rm *.o scan
 
 clean_teste:
-	rm *.o scan
+	rm *.o teste
 
 clear_results:
 	rm results/*outliers.txt results/*clusters.txt results/*hubs.txt

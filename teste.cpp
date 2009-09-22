@@ -1,7 +1,9 @@
-#include "graph.hpp"
+#include "scan.hpp"
 #include <iostream>
 
 int main() {
-     Graph g("data/astro-ph.gml");
-     g.print();
+     //ScanGraph sg("data/astro-ph.gml");
+     Scan s(1,"data/grafo-teste.txt");
+     s.printGraph();
+     std::cout << s.getEdgeWeight(4,2) << std::endl;
 }

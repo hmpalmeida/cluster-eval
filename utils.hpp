@@ -6,6 +6,8 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
+
 //#include <stream>
 
 
@@ -97,9 +99,9 @@ void squareMatrixMultiplication(float** m, float** ms, uint n);
 float sumElementsSquareMatrix(float** m, uint n);
 
 template <typename T>
-std::string to_string(const T& value){
+std::string to_string(const T& value, uint size = 5){
      std::ostringstream oss;
-     oss << value;
+     oss << std::fixed << std::setprecision(size) << value;
      return oss.str();
 }
 

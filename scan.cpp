@@ -344,9 +344,10 @@ std::set<uint> Scan::getNeighborClusters(uint node) {
 /********************************************************************
 * Returns the weight of the edge between two nodes
 ********************************************************************/
-// TODO Falta faezr isso e depois colocar mais formas de calcular a 
-// similaridade. Depois idsso, testar os resultados de alguma forma.
 double Scan::getEdgeWeight(uint node1, uint node2) {
+     Edge e(node2,0.0);
+     std::set<Edge>::iterator i;
+     return g.graph_map[node1]->find(e)->getWeight();
 }
 
 /********************************************************************
