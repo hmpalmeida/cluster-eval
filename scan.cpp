@@ -517,16 +517,16 @@ float Scan::getModularity() {
      for (int i = 0; i <= num_clusters; ++i){
           tr += e[i][i];
      }
-     std::cout << "Calculate trace (e): DONE!" << std::endl;
+     //std::cout << "Calculate trace (e): DONE!" << std::endl;
      // 3 - Calculate e^2
      SquareMatrix<float> matrix2(num_clusters+1);
      float** e_squared;
      e_squared = matrix2;
      squareMatrixMultiplication(e, e_squared, num_clusters+1);
-     std::cout << "Calculate e^2: DONE!" << std::endl;
+     //std::cout << "Calculate e^2: DONE!" << std::endl;
      // 4 - Sum all elements of e^2 (||e^2||)
      float sum_e = sumElementsSquareMatrix(e_squared, num_clusters+1);
-     std::cout << "Sum all elements e^2 (||e^2||): DONE!" << std::endl;
+     //std::cout << "Sum all elements e^2 (||e^2||): DONE!" << std::endl;
      // 5 - Q = tr - ||e^2||
      return tr - sum_e;
 }

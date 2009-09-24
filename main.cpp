@@ -17,9 +17,10 @@ float getBestEpsilon(float start, float end, float step, int mi,
           }
           sc->setSimFunction(simi_type);
           sc->run(f, mi);
-          std::cout << "Calculando Modularidade! \n";
+          std::cout << "Modularity calculus... ";
           float mod = sc->getModularity();
-          std::cout << "FEITO! \n";
+          std::cout << "DONE!" << std::endl;
+          std::cout << "e = " << f << "\t mod = " << mod << std::endl;
           if (mod >= best_mod) {
                epsilon = f;
                best_mod = mod;
