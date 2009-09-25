@@ -26,10 +26,10 @@ class Scan{
                     const double epsilon);
           void buildAssortativityMatrix(float** e);
           double getEdgeWeight(uint node1, uint node2);
-          double similarity(uint node1, uint node2);
+          bool similar(uint node1, uint node2, double epsilon);
           double scanSim(uint node1, uint node2);
           double noSelfLoopSim(uint node1, uint node2);
-          double weightedSim(uint node1, uint node2);
+          double weightedMeanSim(uint node1, uint node2);
           std::string generateFilename(const double epsilon, const int mi);
      public:
           void run(const double epsilon, const int mi);

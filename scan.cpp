@@ -250,7 +250,7 @@ std::set<Edge> Scan::neighborhood(uint node,
      // And yes, he will check similarity with itself...
      std::set<Edge>::iterator setIt;
      for (setIt = adj->begin(); setIt != adj->end(); ++setIt) {
-          if (similarity(node,setIt->getNode()) >= epsilon) {
+          if (similar(node,setIt->getNode(),epsilon)) {
                //std:: cout << "Sim " << node << " " << *setIt
                //     << " = " << similarity(node,*setIt) << std::endl;
                nhood.insert(*setIt);
@@ -346,7 +346,6 @@ std::set<uint> Scan::getNeighborClusters(uint node) {
 ********************************************************************/
 double Scan::getEdgeWeight(uint node1, uint node2) {
      Edge e(node2,0.0);
-     std::set<Edge>::iterator i;
      return g.graph_map[node1]->find(e)->getWeight();
 }
 
@@ -360,7 +359,10 @@ double Scan::getEdgeWeight(uint node1, uint node2) {
 /********************************************************************
 * Original SCAN similarity function
 ********************************************************************/
-double Scan::similarity(uint node1, uint node2){
+// TODO Alterar a similaridade para retornar logo só o resultado.
+// Isso vai permitir que eu use políticas hibridas, como um
+// simScan >= e || weight >= e, ou algo do gênero.
+bool Scan::similar(uint node1, uint node2, double epsilon){
      double sim = 0.0;
      switch (type) {
           case 1:
@@ -373,7 +375,7 @@ double Scan::similarity(uint node1, uint node2){
                break;
           case 3:
                // Weighted SCAN
-               sim = weightedSim(node1, node2);
+               sim = weightedMeanSim(node1, node2);
                break;
           default:
                throw "Unknown similarity function.\n";
@@ -424,7 +426,7 @@ double Scan::noSelfLoopSim(uint node1, uint node2){
 /********************************************************************
 * Simple weighted similarity function
 ********************************************************************/
-double Scan::weightedSim(uint node1, uint node2){
+double Scan::weightedMeanSim(uint node1, uint node2){
      // Não faço a menor idéia de como fazer isso!
      // Variables
      std::set<Edge> *n1, *n2;
