@@ -1,9 +1,11 @@
-#include "scan.hpp"
+#include "proximity.hpp"
 #include <iostream>
 
 int main() {
-     //ScanGraph sg("data/astro-ph.gml");
-     Scan s(1,"data/grafo-teste.txt");
-     s.printGraph();
-     std::cout << s.getEdgeWeight(4,2) << std::endl;
+     Graph g("data/teste.txt");
+     Proximity pr(g);
+     pr.printTransitionMatrix();
+     //Scan s(1,"data/astro-ph.gml");
+     //s.g.printWeights();
+     //std::cout << s.getEdgeWeight(4,2) << std::endl;
 }

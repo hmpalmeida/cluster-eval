@@ -22,9 +22,12 @@ scan: scan.cpp scan.hpp
 utils: utils.cpp utils.hpp
 	$(CC) $(CPPFLAGS) -c utils.cpp utils.o
 
-teste: teste.cpp graph.o scan_graph.o utils.o edge.o scan.o
+proximity: proximity.cpp proximity.hpp
+	$(CC) $(CPPFLAGS) -c proximity.cpp proximity.o
+
+teste: teste.cpp graph.o utils.o edge.o proximity.o
 	$(CC) $(CPPFLAGS) -c teste.cpp 
-	$(CC) $(CPPFLAGS) -o teste utils.o scan_graph.o teste.o edge.o graph.o scan.o
+	$(CC) $(CPPFLAGS) -o teste utils.o teste.o edge.o graph.o proximity.o
 
 clean:
 	rm *.o scan

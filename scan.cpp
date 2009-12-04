@@ -97,12 +97,12 @@ void Scan::run(const double epsilon, const int mi){
                          r = dirReach(y, epsilon, mi);
                          std::set<Edge>::iterator setIt;
                          for (setIt = r.begin(); setIt != r.end(); ++setIt) {
-                              //std::cout << "Node " << *setIt << " | Label = " 
-                              //     << g.getLabel(*setIt) << std::endl;
+                              // If the node is unclassified
                               if (g.getLabel(setIt->getNode()) == -1) {
                                    addToCluster(setIt->getNode(), cid);
                                    q.push(setIt->getNode());
                               }
+                              // If the node is a non-member of the cluster
                               if (g.getLabel(setIt->getNode()) == 0) {
                                    addToCluster(setIt->getNode(), cid);
                               }
@@ -374,8 +374,12 @@ bool Scan::similar(uint node1, uint node2, double epsilon){
                sim = noSelfLoopSim(node1, node2);
                break;
           case 3:
-               // Weighted SCAN
+               // Weighted mean SCAN
                sim = weightedMeanSim(node1, node2);
+               break;
+          case 4:
+               // Weighted mean SCAN
+               sim = weightedOnlySim(node1, node2);
                break;
           default:
                throw "Unknown similarity function.\n";
@@ -427,7 +431,6 @@ double Scan::noSelfLoopSim(uint node1, uint node2){
 * Simple weighted similarity function
 ********************************************************************/
 double Scan::weightedMeanSim(uint node1, uint node2){
-     // Não faço a menor idéia de como fazer isso!
      // Variables
      std::set<Edge> *n1, *n2;
      std::set<Edge> inter;
@@ -447,8 +450,12 @@ double Scan::weightedMeanSim(uint node1, uint node2){
      return (divisor + getEdgeWeight(node1, node2))/2.0;
 }
 
-
-
+/********************************************************************
+* Similarity function using only edge weight
+********************************************************************/
+double Scan::weightedOnlySim(uint node1, uint node2){
+     return getEdgeWeight(node1, node2);
+}
 
 /********************************************************************
 * Modularity Stuff

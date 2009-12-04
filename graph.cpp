@@ -271,6 +271,23 @@ void Graph::print() {
 }
 
 /********************************************************************
+* Print all edge weights. Mainly for testing purposes
+********************************************************************/
+void Graph::printWeights() {
+     hmap::iterator mapIt;
+     std::set<Edge>::iterator setIt;
+     for (mapIt = graph_map.begin(); mapIt != graph_map.end(); ++mapIt) {
+          if (mapIt->second != NULL) {
+               for (setIt = mapIt->second->begin();
+                    setIt != mapIt->second->end();
+                    ++setIt) {
+                    std::cout << setIt->getWeight() << std::endl;
+               }
+          }
+     }
+}
+
+/********************************************************************
 * Returns the adjacency list
 ********************************************************************/
 std::set<Edge>* Graph::getAdjacency(uint node){
@@ -285,11 +302,18 @@ uint Graph::getNumEdges() {
 }
 
 /********************************************************************
+* Returns the graph's number of nodes
+********************************************************************/
+uint Graph::getNumNodes() {
+     return num_nodes;
+}
+
+/********************************************************************
 * Normalizes the edge weights, if they exist
 ********************************************************************/
 void Graph::normalizeWeights() {
      // If the graph is weighted
-     if ((greatest_weight != 0) && (smallest_weight != 0)) {
+     if ((greatest_weight != 0) || (smallest_weight != 0)) {
           hmap::iterator mapIt;
           std::set<Edge>::iterator setIt;
           for (mapIt = graph_map.begin(); mapIt != graph_map.end(); ++mapIt) {

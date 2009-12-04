@@ -12,7 +12,7 @@ class Scan{
           std::vector<std::pair<uint, uint> > outliers;
           hmap_uint_suint hubs;
           uint num_clusters;
-          ScanGraph g;
+          //ScanGraph g;
           uint type; // Which similarity function to use
           // Methods
           bool isCore(uint node, const double epsilon, const int mi);
@@ -30,8 +30,10 @@ class Scan{
           double scanSim(uint node1, uint node2);
           double noSelfLoopSim(uint node1, uint node2);
           double weightedMeanSim(uint node1, uint node2);
+          double weightedOnlySim(uint node1, uint node2);
           std::string generateFilename(const double epsilon, const int mi);
      public:
+          ScanGraph g;
           void run(const double epsilon, const int mi);
           Scan();
           Scan(uint t);

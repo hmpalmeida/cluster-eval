@@ -23,6 +23,8 @@ class Graph{
           Graph();
           virtual ~Graph();
           void print();
+          void printWeights();
           uint getNumEdges();
+          uint getNumNodes();
 };
 
