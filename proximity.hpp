@@ -2,8 +2,10 @@
 
 class Proximity {
      private:
-          float** P; // the transition matrix
+          SquareMatrix<float> P;
           uint n;    // # nodes
+          Proximity(); // Construtor default desabilitado
+          // Construtor de cópia de atribuição?
      public:
           Proximity(Graph& g);
           ~Proximity();
