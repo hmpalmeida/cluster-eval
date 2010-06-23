@@ -1,6 +1,9 @@
 #include "utils.hpp"
 #include <string>
 
+#ifndef CLUSTERING_GRAPH_EDGE_H_
+#define CLUSTERING_GRAPH_EDGE_H_
+
 class Edge {
      protected:
           uint node;
@@ -17,3 +20,5 @@ class Edge {
           bool operator==(const Edge& a) const;
           std::string toString() const;
 };
+
+#endif  // CLUSTERING_GRAPH_EDGE_H_

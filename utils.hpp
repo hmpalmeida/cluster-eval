@@ -2,6 +2,9 @@
  * Utilitary library
  */
 
+#ifndef CLUSTERING_SCAN_UTILS_H_
+#define CLUSTERING_SCAN_UTILS_H_
+
 #include <string.h>
 #include <string>
 #include <iostream>
@@ -9,7 +12,6 @@
 #include <iomanip>
 
 //#include <stream>
-
 
 typedef unsigned int uint;
 
@@ -94,9 +96,11 @@ public:
 };
 
 
-void squareMatrixMultiplication(float** m, float** ms, uint n);
+void squareMatrixMultiplication(float** m, float** s, float** ms, uint n);
 
 float sumElementsSquareMatrix(float** m, uint n);
+
+void printSquareMatrix(float** m, uint n);
 
 template <typename T>
 std::string to_string(const T& value, uint size = 5){
@@ -105,3 +109,13 @@ std::string to_string(const T& value, uint size = 5){
      return oss.str();
 }
 
+// Returns a more honest random number  between 0 and hi-1
+int randomNumber(int hi);
+
+// Returns a random alphanumeric character
+char rand_alnum();
+
+// Returns a random string of size sz
+std::string rand_alnum_str (uint sz);
+
+#endif  // CLUSTERING_SCAN_UTILS_H_

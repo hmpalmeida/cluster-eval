@@ -3,6 +3,9 @@
 #include <string>
 #include <iostream>
 #include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "cluster_evaluator.hpp"
 
 float getBestEpsilon(float start, float end, float step, int mi, 
           uint simi_type, char* graph) {
@@ -18,13 +21,16 @@ float getBestEpsilon(float start, float end, float step, int mi,
           sc->setSimFunction(simi_type);
           sc->run(f, mi);
           std::cout << "Modularity calculus... ";
-          float mod = sc->getModularity();
+          ClusterEvaluator ce(&sc->g, &sc->clusters, &sc->cluster_label);
+          /*
+          float mod = ce.getModularity();
           std::cout << "DONE!" << std::endl;
           std::cout << "e = " << f << "\t mod = " << mod << std::endl;
           if (mod >= best_mod) {
                epsilon = f;
                best_mod = mod;
-          }
+          }*/
+          ce.getSilhouetteIndex();
           delete sc;
      }
      return epsilon;
@@ -37,6 +43,7 @@ void runScan(float epsilon, int mi, uint simi_type, char* graph) {
      } catch (std::string err) {
           std::cout << err << std::endl;
      }
+     //s->printGraph();
      s->run(epsilon, mi);
      s->writeAll(epsilon, mi);
      delete s;

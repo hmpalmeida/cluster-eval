@@ -63,6 +63,11 @@ void Scan::loadGraph(std::string filename){
                std::cout << err << std::endl;
           }
      }
+     // TODO Initialize all <cluster_label> with -1
+     hmap::iterator it;
+     for (it = g.graph_map.begin(); it != g.graph_map.end(); ++it) {
+          cluster_label[it->first] = -1;
+     }
 }
 
 /********************************************************************
@@ -77,9 +82,10 @@ void Scan::run(const double epsilon, const int mi){
      uint cnt = 0;
      for (node = g.graph_map.begin(); node != g.graph_map.end(); ++node) {
           // Making sure this node was not yet evaluated
-          if (g.getLabel(node->first) == -1) {
+          if (getClusterLabel(node->first) == -1) {
                // Is it a core?
                if (isCore(node->first, epsilon, mi)) {
+                    //std::cout << node->first << " is a core!\n";
                     // Will begin a new cluster
                     int cid = getNewClusterID();
                     // Put all the e-neighborhood of the node in a queue
@@ -87,7 +93,9 @@ void Scan::run(const double epsilon, const int mi){
                     x = neighborhood(node->first, epsilon);
                     std::queue<uint> q;
                     std::set<Edge>::iterator it;
+                    //std::cout << node->first << " nhood is:";
                     for (it = x.begin(); it != x.end(); ++it) {
+                         //std::cout << "   " << it->getNode() << std::endl;
                          q.push(it->getNode());
                     }
                     while (!q.empty()) {
@@ -98,12 +106,12 @@ void Scan::run(const double epsilon, const int mi){
                          std::set<Edge>::iterator setIt;
                          for (setIt = r.begin(); setIt != r.end(); ++setIt) {
                               // If the node is unclassified
-                              if (g.getLabel(setIt->getNode()) == -1) {
+                              if (getClusterLabel(setIt->getNode()) == -1) {
                                    addToCluster(setIt->getNode(), cid);
                                    q.push(setIt->getNode());
                               }
                               // If the node is a non-member of the cluster
-                              if (g.getLabel(setIt->getNode()) == 0) {
+                              if (getClusterLabel(setIt->getNode()) == 0) {
                                    addToCluster(setIt->getNode(), cid);
                               }
                          }
@@ -111,7 +119,7 @@ void Scan::run(const double epsilon, const int mi){
                     }
                } else {
                     // Not a Core, so it will be labeled as non-member (0)
-                    g.setLabel(node->first, 0);
+                    setClusterLabel(node->first, 0);
                }
           } else {
                // Node already evaluated. Move along.
@@ -121,7 +129,8 @@ void Scan::run(const double epsilon, const int mi){
      // Further classifies non-members
      
      hmap_ii::iterator nmnode;
-     for (nmnode = g.label.begin(); nmnode != g.label.end(); ++nmnode) {
+     for (nmnode = cluster_label.begin(); 
+               nmnode != cluster_label.end(); ++nmnode) {
           if (nmnode->second == 0) {
                std::set<uint> tmp;
                tmp = getNeighborClusters(nmnode->first);
@@ -146,7 +155,7 @@ Scan::~Scan() {
      for (it = clusters.begin(); it != clusters.end(); ++it) {
           delete it->second;
      }
-          for (it = hubs.begin(); it != hubs.end(); ++it) {
+     for (it = hubs.begin(); it != hubs.end(); ++it) {
           delete it->second;
      }
 }
@@ -174,7 +183,7 @@ void Scan::writeClusters(std::string name){
           for (setIt = mapIt->second->begin();
                setIt != mapIt->second->end();
                ++setIt) {
-          outfile << " " << *setIt;
+          outfile << " , " << g.getNodeLabel(*setIt);
           }
           outfile << std::endl;
      }
@@ -190,7 +199,8 @@ void Scan::writeOutliers(std::string name){
      std::vector<std::pair<uint, uint> >::iterator it;
      for (it = outliers.begin(); it != outliers.end();++it){
           //std::cout << *it << "\t";
-          outfile << it->first << " -> c" << it->second << std::endl;
+          outfile << g.getNodeLabel(it->first) << 
+               " -> c" << it->second << std::endl;
      }
      outfile.close();
 }
@@ -205,7 +215,7 @@ void Scan::writeHubs(std::string name){
      std::set<uint>::iterator setIt;
      for (mapIt = hubs.begin(); mapIt != hubs.end(); ++mapIt) {
           //std::cout << mapIt->first << " ->";
-          outfile << mapIt->first << " ->";
+          outfile << g.getNodeLabel(mapIt->first) << " ->";
           for (setIt = mapIt->second->begin();
                setIt != mapIt->second->end();
                ++setIt) {
@@ -315,7 +325,7 @@ void Scan::addToCluster(uint node, uint clust) {
      // Insert it. The set will handle possible duplicates
      clusters[clust]->insert(node);
      // Update the label
-     g.setLabel(node, clust);
+     setClusterLabel(node, clust);
 }
 
 /********************************************************************
@@ -334,7 +344,7 @@ std::set<uint> Scan::getNeighborClusters(uint node) {
      // with any repetition
      for (setIt = adj->begin(); setIt != adj->end(); ++setIt) {
           if (node != setIt->getNode()) {
-               clust = g.getLabel(setIt->getNode());
+               clust = getClusterLabel(setIt->getNode());
                if (clust > 0) numcl.insert(clust);
           }
      }
@@ -384,7 +394,7 @@ bool Scan::similar(uint node1, uint node2, double epsilon){
           default:
                throw "Unknown similarity function.\n";
      }
-     return sim;
+     return (sim >= epsilon);
 }
 
 /********************************************************************
@@ -404,6 +414,8 @@ double Scan::scanSim(uint node1, uint node2){
                (inter, inter.begin()));
      divisor = n1->size() * n2->size();
      divisor = sqrt(divisor);
+     //std::cout << "Sim(" << node1 << ", " << node2 << ") = " 
+     //     << (inter.size()/(double)divisor) << std::endl;
      return (inter.size()/(double)divisor);
 }
 
@@ -458,12 +470,29 @@ double Scan::weightedOnlySim(uint node1, uint node2){
 }
 
 /********************************************************************
+* Returns the value of a node's label (it's cluster)
+********************************************************************/
+long Scan::getClusterLabel(uint node){
+     return cluster_label[node];
+}
+
+/********************************************************************
+* Sets the value of a node's label
+********************************************************************/
+void Scan::setClusterLabel(uint node, long l){
+     cluster_label[node] = l;
+}
+
+/********************************************************************
 * Modularity Stuff
+* FIXME Modularidade vai ter que virar uma classe em si para eu poder
+* usar com o naming game!
 ********************************************************************/
 
 /********************************************************************
 * Builds the assortativity marix used in modularity calculations
 ********************************************************************/
+/*
 void Scan::buildAssortativityMatrix(float** e) {
      // First, let's "zero" it
      for (int i = 0; i <= num_clusters; ++i) {
@@ -504,7 +533,7 @@ void Scan::buildAssortativityMatrix(float** e) {
      }
      // Matrix e fully calculated
 }
-
+*/
 /********************************************************************
 * Calculates the modularity for the clustering obtained. Obviously,
 * The clustering must have already been made.
@@ -513,6 +542,7 @@ void Scan::buildAssortativityMatrix(float** e) {
 * of proportions, but e_{0,0} SHOULD NOT be considered for the trace Tr e.
 * ... (I think)
 ********************************************************************/
+/*
 float Scan::getModularity() {
      // 1 - Generate Matrix e, where:
      // e_{i,j} = (edges linking ci to cj)/(all edges in G)
@@ -539,3 +569,4 @@ float Scan::getModularity() {
      // 5 - Q = tr - ||e^2||
      return tr - sum_e;
 }
+*/

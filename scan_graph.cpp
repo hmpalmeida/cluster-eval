@@ -1,6 +1,8 @@
 #include "scan_graph.hpp"
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
 
 /********************************************************************
 * Reads a graph from a gml file
@@ -11,8 +13,10 @@ void ScanGraph::readGmlFile(std::string filename, bool self_loops) {
      std::string value;
      bool directed = false;
      std::ifstream file;
-     double weight;
-     int braces = 0, source, target;
+     double weight = 1;
+     int braces = 0, source = -1, target = -1;
+     uint nid = 0;
+     char tmp[256];
      
      num_edges = 0;
      
@@ -55,19 +59,39 @@ void ScanGraph::readGmlFile(std::string filename, bool self_loops) {
                          // we accept. We will skip anything else
                          if (attr == "id") {
                               file >> value;
-                              graph_map[atoi(value.c_str())] = NULL;
+                              nid = atoi(value.c_str());
+                              graph_map[nid] = NULL;
+                              graph_attributes[nid] = NULL;
                               // Setting the "unclassified" (-1) label 
                               // to all nodes
-                              label[atoi(value.c_str())] = -1;
+                              // label[nid] = -1;
                               // SCAN needs all nodes to have self loops, so...
                               // TODO the problem now is: what is the weight
                               // of a self loop? I never liked this, so maybe
                               // this is one more reason to remove it 
                               // altogether :D
                               if (self_loops) {
-                                   addEdge(atoi(value.c_str()), 
-                                             atoi(value.c_str()));
+                                   addEdge(nid, nid);
+                              } 
+                              
+                         } else if (attr == "attributes") {
+                              file >> attr;
+                              if (attr != "[") {
+                                   throw ("Wrong format. Expecting \"[\" after \"attributes\".\n");
                               }
+                              if (graph_attributes[nid] == NULL) {
+                                   graph_attributes[nid] = new std::set<std::string>;
+                              }
+                              file >> value;
+                              while (value != "]") { 
+                                   graph_attributes[nid]->insert(value);
+                                   file >> value;
+                              }
+                         } else if (attr == "label") {
+                              file.getline(tmp, 256);
+                              value = tmp;
+                              value.erase(0, 1);
+                              graph_labels[nid] = value;
                          }
                          // Rinse. Repeat
                          file >> attr;
@@ -160,11 +184,11 @@ void ScanGraph::readFile(std::string filename, bool self_loops){
           }
           // Everything ok? Proceed reading the nodes
           num_nodes = auxint;
-          for (int i = 0; i < num_nodes; ++i) {
+          for (uint i = 0; i < num_nodes; ++i) {
                file >> auxint;
                graph_map[auxint] = NULL;
                // Setting the "unclassified" (-1) label to all nodes
-               label[auxint] = -1;
+               // label[auxint] = -1;
                // SCAN needs all nodes to have self loops, so...
                // TODO the problem now is: what is the weight of a self loop?
                // I never liked this, so maybe this is one more reason to 
@@ -229,15 +253,34 @@ ScanGraph::ScanGraph(std::string filename) : Graph(filename){
 }
 
 /********************************************************************
-* Returns the value of a node's label
+* Returns the value of a node's label (it's cluster)
 ********************************************************************/
-long ScanGraph::getLabel(uint node){
-     return label[node];
-}
+//long ScanGraph::getLabel(uint node){
+//     return label[node];
+//}
 
 /********************************************************************
 * Sets the value of a node's label
 ********************************************************************/
-void ScanGraph::setLabel(uint node, long l){
-     label[node] = l;
+//void ScanGraph::setLabel(uint node, long l){
+//     label[node] = l;
+//}
+
+// Destructor
+/*
+ScanGraph::~ScanGraph() {
+     hmap::const_iterator it;
+     for (it = graph_map.begin(); it != graph_map.end(); ++it) {
+          // Now, Delete the set
+          delete it->second;
+     }
+     hmap_i_ss::iterator it2;
+     for (it2 = graph_attributes.begin(); it2 != graph_attributes.end(); 
+               ++it2) {
+          if (it2->second != NULL) {
+               // Now, Delete the set
+               delete it2->second;
+          }
+     }
 }
+*/
