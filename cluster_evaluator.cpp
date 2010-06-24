@@ -128,40 +128,64 @@ float ClusterEvaluator::getModularity() {
 /*
  * TODO Ignore cluster 0?
  */
-double ClusterEvaluator::getSilhouetteIndex() {
+std::vector<double> ClusterEvaluator::getSilhouetteIndex() {
      hmap_i_i::iterator it;
      hmap_i_i spaths;
      hmap::iterator node;
-     double silhouette;
+     int ccount;
+     double an = 0.0;
+     int bn = MAXIMUM;
+     std::vector<double> silhouette(clusters->size()+1);
+     std::vector<int> node_count(clusters->size()+1);
+     // Initializing average counters
+     for (int i = 0; i < clusters->size()+1; ++i) {
+          silhouette[i] = 0.0;
+          node_count[i] = 0;
+     }
      // For each node n in the graph
+     unsigned int mycluster;
      for (node = graph->graph_map.begin(); node != graph->graph_map.end();
                ++node){
-          // Calculate the shortest paths for all nodes
-          spaths = graph->dijkstra(node->first);
-          unsigned int mycluster;
-          mycluster = node_cluster[node->first];
-          double an = 0.0;
-          int ccount = 0;
-          int bn = MAXIMUM;
-          for (it = spaths.begin(); it != spaths.end(); ++it) {
-               if (it->first != node->first){
-                    if (node_cluster[it->first] == mycluster) {
-                         // Calculate it's the average distance to the 
-                         // other members of his cluster (an)
-                         an += it->second;
-                         ++ccount;
-                    } else {
-                         // Calculate smallest distance from him to any 
-                         // other cluster (bn)
-                         if (it->second < bn) bn = it->second;
+          // We will not calculate the Silhouette index for the
+          // cluter 0, as it is not really a cluster
+          mycluster = (node_cluster->find(node->first)->second);
+          if (mycluster != 0) {
+               // Calculate the shortest paths for all nodes
+               spaths = graph->dijkstra(node->first);
+               an = 0.0;
+               ccount = 0;
+               bn = MAXIMUM;
+               for (it = spaths.begin(); it != spaths.end(); ++it) {
+                    if (it->first != node->first){
+                         if ((node_cluster->find(it->first))->second 
+                                   == mycluster) {
+                              // Calculate it's the average distance to the 
+                              // other members of his cluster (an)
+                              an += it->second;
+                              ++ccount;
+                         } else {
+                              // Calculate smallest distance from him to any 
+                              // other cluster (bn)
+                              if (it->second < bn) bn = it->second;
+                         }
                     }
                }
-               std::cout << it->first << " -> " << it->second << std::endl;
+               an = an/(double)ccount;
+               // His Silhouette index is Sn = (bn - an)/max(an, bn)
+               silhouette[mycluster] += (bn - an)/
+                    ((an > (double) bn)? an:(double)bn);
+               node_count[mycluster] += 1;
+               // TODO Final value will be the average?
+               // Return the average value for each cluster. 
+               //std::cout << "Silhouette index for node " << node->first <<
+               //     " = " << to_string(silhouette) << std::endl; 
           }
-          an = an/(double)ccount;
-          // His Silhouette index is Sn = (bn - an)/max(an, bn)
-          silhouette = (bn - an)/((an > (double) bn)? an: (double) bn);
-          // TODO Final value will be the average?
+     }
+     for (int i = 1; i < silhouette.size(); ++i) {
+          // Average Silhouette index for cluster i
+          silhouette[i] = silhouette[i]/(double)node_count[i];
+          // Average silhouete index for the whole graph
+          silhouette[0] += silhouette[i]/(double)(silhouette.size()-1);
      }
      return silhouette;
 }

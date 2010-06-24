@@ -10,9 +10,6 @@
 #include <utility>
 
 
-#define MAXIMUM 999999999
-
-
 /********************************************************************
 * Just an empty constructor
 ********************************************************************/
@@ -652,9 +649,11 @@ hmap_i_i Graph::dijkstra(unsigned int source) {
                          distance[dest->getNode()]) {
                          // If node not visited yet and the path to it
                          // is smaller then the current distance...
+                         /*
                          std::cout << "distance[" << dest->getNode() <<
                               "] = " << distance[id] << " + " <<
                               dest->getWeight() << std::endl;
+                         */
                          distance[dest->getNode()] = 
                               distance[id] + dest->getWeight();
                          q.push(std::pair <uint, uint> 

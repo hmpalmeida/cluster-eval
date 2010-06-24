@@ -30,7 +30,12 @@ float getBestEpsilon(float start, float end, float step, int mi,
                epsilon = f;
                best_mod = mod;
           }*/
-          ce.getSilhouetteIndex();
+          std::vector<double> sil = ce.getSilhouetteIndex();
+          for (int i = 1; i < sil.size(); ++i) {
+               std::cout << "Si for cluster " << i << ": " << 
+                    sil[i] << std::endl;
+          }
+          std::cout << "Si for the whole graph: " << sil[0] << std::endl;
           delete sc;
      }
      return epsilon;

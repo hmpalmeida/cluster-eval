@@ -12,6 +12,8 @@
 #ifndef CLUSTERING_GRAPH_H_
 #define CLUSTERING_GRAPH_H_
 
+#define MAXIMUM 999999999
+
 typedef std::tr1::unordered_map< uint, std::set<Edge>*> hmap;
 typedef std::tr1::unordered_map< uint, std::set<std::string>*> hmap_i_ss;
 typedef std::tr1::unordered_map< uint, std::string > hmap_i_s;
