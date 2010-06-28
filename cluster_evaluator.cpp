@@ -15,7 +15,7 @@ ClusterEvaluator::ClusterEvaluator(Graph* g) {
 }
 
 ClusterEvaluator::ClusterEvaluator(Graph* g, hmap_uint_suint* cls, 
-          hmap_ii* nc) {
+          hmap_uint_suint* nc) {
      loadGraph(g);
      loadClusters(cls, nc);
 }
@@ -27,7 +27,8 @@ void ClusterEvaluator::loadGraph(Graph* g) {
      graph = g;
 }
 
-void ClusterEvaluator::loadClusters(hmap_uint_suint* cls, hmap_ii* nc) {
+void ClusterEvaluator::loadClusters(hmap_uint_suint* cls, 
+          hmap_uint_suint* nc) {
      clusters = cls;
      num_clusters = clusters->size();
      node_cluster = nc;
@@ -66,7 +67,7 @@ void ClusterEvaluator::buildAssortativityMatrix(float** e) {
                          // FIXME Na verdade é o "label" do cluster...
                          //e[i][j] += 1/(double)g.getNumEdges();
                          if (i == j) {
-                              // Removing duplicated edges TODO What??
+                              // Removing duplicated edges
                               e[i][j] += 1/(double)(graph->getNumEdges()*2.0);
                          } else {
                               // No duplicates here
@@ -87,7 +88,6 @@ void ClusterEvaluator::buildAssortativityMatrix(float** e) {
 * of proportions, but e_{0,0} SHOULD NOT be considered for the trace Tr e.
 * ... (I think)
 ********************************************************************/
-// FIXME num_clusters ainda vai ter que ser +1?
 float ClusterEvaluator::getModularity() {
      // 1 - Generate Matrix e, where:
      // e_{i,j} = (edges linking ci to cj)/(all edges in G)
@@ -126,7 +126,9 @@ float ClusterEvaluator::getModularity() {
 
 
 /*
- * TODO Ignore cluster 0?
+ * Calculates the Silhouette index for a graph. Returns a vector
+ * with the SI for the whole graph in position 0 and for each cluster
+ * in the position of it's identifier.
  */
 std::vector<double> ClusterEvaluator::getSilhouetteIndex() {
      hmap_i_i::iterator it;
@@ -148,6 +150,11 @@ std::vector<double> ClusterEvaluator::getSilhouetteIndex() {
                ++node){
           // We will not calculate the Silhouette index for the
           // cluter 0, as it is not really a cluster
+          // TODO é aqui! iterar no set de labels do nó e, para casa um deles,
+          // calcular a conribuição do nó para a silhueta desse cluster.
+          // Lembrando que, para um cluster a, se o elemento n participa tanto
+          // de a quanto de outro, ele não conta pra definir os limites
+          // de a (ou seja, ele é membro do grupo a)
           mycluster = (node_cluster->find(node->first)->second);
           if (mycluster != 0) {
                // Calculate the shortest paths for all nodes
@@ -189,3 +196,73 @@ std::vector<double> ClusterEvaluator::getSilhouetteIndex() {
      }
      return silhouette;
 }
+
+/* TODO
+ * Calculates the Silhouette index for a graph. Returns a vector
+ * with the SI for the whole graph in position 0 and for each cluster
+ * in the position of it's identifier.
+ */
+/*
+std::vector<double> ClusterEvaluator::getSilhouetteIndex(hmap_uint_suint* nc) {
+     hmap_i_i::iterator it;
+     hmap_i_i spaths;
+     hmap::iterator node;
+     int ccount;
+     double an = 0.0;
+     int bn = MAXIMUM;
+     std::vector<double> silhouette(clusters->size()+1);
+     std::vector<int> node_count(clusters->size()+1);
+     // Initializing average counters
+     for (int i = 0; i < clusters->size()+1; ++i) {
+          silhouette[i] = 0.0;
+          node_count[i] = 0;
+     }
+     // For each node n in the graph
+     unsigned int mycluster;
+     for (node = graph->graph_map.begin(); node != graph->graph_map.end();
+               ++node){
+          // We will not calculate the Silhouette index for the
+          // cluter 0, as it is not really a cluster
+          // FIXME Se nc apontar para um set maior que zero, rodar
+          // o algoritmo para cada valor de cluster do nó e ir acumulando!
+          mycluster = (nc->find(node->first)->second);
+          if (mycluster != 0) {
+               // Calculate the shortest paths for all nodes
+               spaths = graph->dijkstra(node->first);
+               an = 0.0;
+               ccount = 0;
+               bn = MAXIMUM;
+               for (it = spaths.begin(); it != spaths.end(); ++it) {
+                    if (it->first != node->first){
+                         if ((node_cluster->find(it->first))->second 
+                                   == mycluster) {
+                              // Calculate it's the average distance to the 
+                              // other members of his cluster (an)
+                              an += it->second;
+                              ++ccount;
+                         } else {
+                              // Calculate smallest distance from him to any 
+                              // other cluster (bn)
+                              if (it->second < bn) bn = it->second;
+                         }
+                    }
+               }
+               an = an/(double)ccount;
+               // His Silhouette index is Sn = (bn - an)/max(an, bn)
+               silhouette[mycluster] += (bn - an)/
+                    ((an > (double) bn)? an:(double)bn);
+               node_count[mycluster] += 1;
+               // TODO Final value will be the average?
+               // Return the average value for each cluster. 
+               //std::cout << "Silhouette index for node " << node->first <<
+               //     " = " << to_string(silhouette) << std::endl; 
+          }
+     }
+     for (int i = 1; i < silhouette.size(); ++i) {
+          // Average Silhouette index for cluster i
+          silhouette[i] = silhouette[i]/(double)node_count[i];
+          // Average silhouete index for the whole graph
+          silhouette[0] += silhouette[i]/(double)(silhouette.size()-1);
+     }
+     return silhouette;
+}*/

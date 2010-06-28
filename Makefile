@@ -2,7 +2,7 @@ CC = g++
 CPPFLAGS = -g #-Wno-deprecated -Wall  -O2 
 
 all: utils.o graph.o main.o scan.o scan_graph.o edge.o cluster_evaluator.o
-	$(CC) $(CPPFLAGS) -o scan utils.o main.o graph.o scan.o scan_graph.o edge.o cluster_evaluator.o
+	$(CC) $(CPPFLAGS) -o cluster utils.o main.o graph.o scan.o scan_graph.o edge.o cluster_evaluator.o
 
 scan_graph: scan_graph.cpp scan_graph.hpp
 	$(CC) $(CPPFLAGS) -c scan_graph.cpp scan_graph.o
@@ -48,7 +48,7 @@ teste: teste.cpp utils.o naming.o graph.o edge.o multiple_naming.o ocurrence.o i
 	$(CC) $(CPPFLAGS) -o teste utils.o teste.o naming.o graph.o edge.o multiple_naming.o ocurrence.o intersection_naming.o
 
 clean:
-	rm *.o scan
+	rm *.o cluster
 
 clean_teste:
 	rm *.o teste

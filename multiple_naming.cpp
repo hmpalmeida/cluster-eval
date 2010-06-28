@@ -257,3 +257,41 @@ void MultipleNamingGame::printResultsByLabel() {
      }
 }
 
+/*
+ * Calculates the Silhouette index for the clustering
+ */
+void MultipleNamingGame::getSilhouette() {
+     // Runs through all the labels, getting those who are present in 
+     // more than a given threshold of nodes and prepare the data
+     // for ClusterEvaluator
+     std::tr1::unordered_map<std::string, std::set<uint> > clusters;
+     hmap_ui_so::iterator it;
+     std::set<Ocurrence>::iterator sit;
+     uint nid = 0;
+     // First gather all nodes by label
+     for (it = voc_xp.begin(); it != voc_xp.end(); ++it) {
+          nid = it->first;
+          for (sit = it->second->begin(); sit != it->second->end(); ++sit) {
+               Ocurrence o = *sit;
+               clusters[o.getWord()].insert(nid);
+          }
+     }
+     std::vector<std::string> id_clusters;
+     hmap_uint_suint val_clusters;
+     // since cluster 0 is virtual, let's fake it
+     id_clusters.push_back("0");
+     std::tr1::unordered_map<std::string, std::set<uint> >::iterator cit;
+     std::set<uint>::iterator siit;
+     for (cit = clusters.begin(); cit != clusters.end(); ++cit) {
+          if (cit->second.size() > 3) {
+               // Keeping it for reference
+               id_clusters.push_back(cit->first);
+               for (siit = cit->second.begin(); siit != cit->second.end();
+                         ++siit) {
+                    valclusters[id_clusters.size()-1].insert(*siit);
+               }
+          }
+     }
+     // TODO Clusters ready (I hope). What else? node_clusters
+
+}

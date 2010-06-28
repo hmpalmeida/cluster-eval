@@ -76,6 +76,23 @@ void printSquareMatrix(float** m, uint n){
      }
 }
 
+// Tokenizes a string. Whitespaces are the delimitors
+std::vector<std::string> stringTokenizer(std::string line) {
+     uint pos = 0;
+     std::string t;
+     std::vector<std::string> tokens;
+     while (pos < line.size()) {
+          t.clear();
+          while (line[pos] == ' ') ++pos;
+          while ((line[pos] != ' ') && (pos < line.size())) {
+               t.push_back(line[pos]);
+               ++pos;
+          }
+          if (t.size() > 0) tokens.push_back(t);
+     }
+     return tokens;
+}
+
 /*
 template <typename T>
 std::string to_string(const T& value){

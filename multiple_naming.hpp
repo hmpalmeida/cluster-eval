@@ -32,6 +32,7 @@ class MultipleNamingGame : public NamingGame {
           void run(uint rounds);
           void printResults();
           void printResultsByLabel();
+          void getSilhouette();
 };
 
 #endif  // CLUSTERING_SCAN_MULTIPLE_NAMING_H_

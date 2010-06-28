@@ -10,6 +10,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <vector>
 
 //#include <stream>
 
@@ -117,5 +118,7 @@ char rand_alnum();
 
 // Returns a random string of size sz
 std::string rand_alnum_str (uint sz);
+
+std::vector<std::string> stringTokenizer(std::string line);
 
 #endif  // CLUSTERING_SCAN_UTILS_H_
