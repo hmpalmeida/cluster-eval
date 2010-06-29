@@ -9,16 +9,14 @@
 #include <fstream>
 #include "cluster_evaluator.hpp"
 
-/* FIXME FIXME FIXME!!!!!!!!!
- * Clusters assumes the cluster id will be an int, and that is not right.
- * Prepare accordingly!
+/* 
+ * Loads a file with clustering data for evaluation
  */
-
-
-// TODO Terminar com o carregamento dos parâmetros. Ainda tenho que adaptar o
-// silhouette index para tratar o caso de overlapping!
-void getClusters(char* fclusters, hmap_uint_suint* clusters) {
+void getClusters(char* fclusters, hmap_uint_suint* clusters, 
+          std::vector<std::string>* id_clusters ) {
      std::set<uint>* tmpset = NULL;
+     // as always, no cluster 0
+     id_clusters->push_back("");
      std::ifstream cluster_file;
      std::vector<std::string> tokens;
      std::string line;
@@ -38,7 +36,8 @@ void getClusters(char* fclusters, hmap_uint_suint* clusters) {
                exit(1);
           }
           // Cluster id
-          cid = atoi(tokens[0].c_str());
+          id_clusters->push_back(tokens[0]);
+          cid = id_clusters->size()-1;
           if (tmpset == NULL) tmpset = new std::set<uint>;
           for (int i = 2; i < tokens.size(); ++i){
                // Node ids
@@ -58,45 +57,46 @@ void evaluate(char* fgraph, char* fclusters) {
      // Loading the graph data
      Graph gr(fgraph);
      // Loading the cluster data
+     std::vector<std::string> id_clusters;
      hmap_uint_suint clusters;
-     getClusters(fclusters, &clusters);
+     getClusters(fclusters, &clusters, &id_clusters);
      // Generating the clusters by node data
-     // FIXME Adaptar para que o clusters by label seja um hmap_uint_suint
-     // também. CEval vai ter que mudar!
      hmap_uint_suint cluster_label;
      hmap_uint_suint::const_iterator it;
+     std::set<uint>::iterator sit;
      for (it = clusters.begin(); it != clusters.end(); ++it) {
-          std::cout << it->first << ": " << it->second->size() << std::endl;
+          for (sit = it->second->begin(); sit != it->second->end(); ++sit) {
+               if (cluster_label[*sit] == NULL) 
+                    cluster_label[*sit] = new std::set<uint>;
+               cluster_label[*sit]->insert(it->first);
+          }
+          //std::cout << it->first << ": " << it->second->size() << std::endl;
+     }
+     // Adding cluster 0 to any node not in a cluster
+     hmap::iterator hit;
+     for (hit = gr.graph_map.begin(); hit != gr.graph_map.end(); ++hit) {
+          if (cluster_label[hit->first] == NULL) {
+               cluster_label[hit->first] = new std::set<uint>;
+               cluster_label[hit->first]->insert(0);
+          }
      }
      // Starting the cluster evaluator
      ClusterEvaluator ce(&gr, &clusters, &cluster_label);
-     
+     std::vector<double> sil = ce.getSilhouetteIndex();
+     for (int i = 1; i < sil.size(); ++i) {
+          std::cout << "Si for cluster " << i << ": " << 
+               sil[i] << std::endl;
+     }
+     float mod = ce.getModularity();
+     std::cout << "Modularity is: " << mod << std::endl;
+
      // Cleaning allocs
      for (it = clusters.begin(); it != clusters.end(); ++it) {
           delete it->second;
      }
-
-     /*
-          std::cout << "Modularity calculus... ";
-          ClusterEvaluator ce(&sc->g, &sc->clusters, &sc->cluster_label);
-          
-          //float mod = ce.getModularity();
-          //std::cout << "DONE!" << std::endl;
-          //std::cout << "e = " << f << "\t mod = " << mod << std::endl;
-          //if (mod >= best_mod) {
-          //     epsilon = f;
-          //     best_mod = mod;
-          //}
-          std::vector<double> sil = ce.getSilhouetteIndex();
-          for (int i = 1; i < sil.size(); ++i) {
-               std::cout << "Si for cluster " << i << ": " << 
-                    sil[i] << std::endl;
-          }
-          std::cout << "Si for the whole graph: " << sil[0] << std::endl;
-          delete sc;
-     //}
-     //return epsilon;
-     */
+     for (it = cluster_label.begin(); it != cluster_label.end(); ++it) {
+          delete it->second;
+     }
 }
 
 void runScan(float epsilon, int mi, uint simi_type, char* graph) {
