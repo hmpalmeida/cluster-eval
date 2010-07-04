@@ -242,11 +242,14 @@ void MultipleNamingGame::printResultsByLabel() {
      uint nid = 0;
      // First gather all nodes by label
      for (it = voc_xp.begin(); it != voc_xp.end(); ++it) {
-          nid = it->first;
-          for (sit = it->second->begin(); sit != it->second->end(); ++sit) {
-               Ocurrence o = *sit;
-               clusters[o.getWord()].insert(nid);
-          }
+          //if (it->second->size() > 2) {
+               nid = it->first;
+               for (sit = it->second->begin(); 
+                         sit != it->second->end(); ++sit) {
+                    Ocurrence o = *sit;
+                    clusters[o.getWord()].insert(nid);
+               }
+          //}
      }
      // Now print them!
      std::tr1::unordered_map<std::string, std::set<uint> >::iterator cit;
@@ -318,7 +321,7 @@ void MultipleNamingGame::mergeLabels(double thold, uint simfunc) {
      std::vector<std::string> small_clusters;
      std::tr1::unordered_map<std::string, std::set<uint> >::iterator cit;
      for (cit = clusters.begin(); cit != clusters.end(); ++cit) {
-          if (cit->second.size() <= 3) {
+          if (cit->second.size() < 3) {
                small_clusters.push_back(cit->first);
           } else {
                c_queue.push(std::pair<uint, std::string>(0, cit->first));
@@ -333,18 +336,27 @@ void MultipleNamingGame::mergeLabels(double thold, uint simfunc) {
      std::pair<uint, std::string> qtop;
      // Starting merge process
      while (!c_queue.empty()) {
+          std::cout << "---------------------------------" << std::endl;
+          std::cout << "Starting loop. Heap size: " << c_queue.size() <<
+               std::endl;
           qtop = c_queue.top();
           c_queue.pop();
           c1 = qtop.second;
+          std::cout << "Top Element: " << c1 << std::endl;
           // If the top cluster in the queue was not yet evaluated 
-          if (already_seen.find(c1) != already_seen.end()) {
-               // Iterate and ompare to all other clusters
+          if (already_seen.find(c1) == already_seen.end()) {
+               std::cout << "Never seen. Comparing to other clusters..\n";
+               // Iterate and compare to all other clusters
                for (cit = clusters.begin(); cit != clusters.end(); ++cit) {
                     c2 = cit->first;
                     if (c1 != c2) {
+                         std::cout << "To cluster: " << c2 << std::endl;
                          double sim = doSimilarity(&clusters[c1], 
                                    &clusters[c2], simfunc);
+                         std::cout << "Sim(" << c1 << ", " << c2 << ") = " <<
+                              sim << std::endl;
                          if (sim > thold) {
+                              std::cout << "Merging! (I hope...)\n";
                               // merge c1 and c2 into a c1_c2
                               std::set<uint> c1c2; 
                               std::merge(clusters[c1].begin(), 
@@ -378,7 +390,7 @@ void MultipleNamingGame::mergeLabels(double thold, uint simfunc) {
           std::cout << cit->first << " -> ";
           for (suiit = cit->second.begin(); suiit != cit->second.end(); 
                     ++suiit) {
-               std::cout << ", " << *suiit;
+               std::cout << ", " << g.getNodeLabel(*suiit);
           }
           std::cout << std::endl;
      }

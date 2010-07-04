@@ -11,17 +11,21 @@
 int main() {
      //NamingGame ng("data/football.gml");
      //MultipleNamingGame ng("data/marvel-graph-20t-nosheref.gml", 30, 1);
-     IntersectionNamingGame ng("data/marvel-graph-50n-nosheref.gml");
-     //IntersectionNamingGame ng("data/teste.gml");
+     //IntersectionNamingGame ng("data/marvel-graph-50n-nosheref.gml");
+     IntersectionNamingGame ng("data/teste.gml");
      //IntersectionNamingGame ng("data/marvel-graph-50n.gml");
      //ng.loadRandomWord(15);
      //ng.g.printDotFile("marvel50n.dot");
-     //ng.run(10);
+     ng.run(10);
      //ng.printResults();
      //std::cout << "****************" << std::endl;
      //ng.printResultsByLabel();
+     //std::cout << "Merging labels!" << std::endl;
+     //std::cout << "------------------------------------" << std::endl;
+     ng.mergeLabels();
+     //ng.printResultsByLabel();
      //ng.printDotClusters("marvel50nclusters.dot");
-     ng.g.printClutoFile("marvel50n.cluto");
+     //ng.g.printClutoFile("marvel50n.cluto");
      //Graph g("data/teste.txt");
      //Proximity pr(g);
      //pr.printTransitionMatrix();
