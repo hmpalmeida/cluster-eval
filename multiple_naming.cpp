@@ -1,6 +1,10 @@
 #include "multiple_naming.hpp"
 #include <vector>
 #include <algorithm>
+#include <queue>
+#include <set>
+
+typedef std::tr1::unordered_map<uint, std::set<uint>* > hmap_uint_suint;
 
 MultipleNamingGame::MultipleNamingGame() {
 }
@@ -277,7 +281,7 @@ void MultipleNamingGame::getSilhouette() {
           }
      }
      std::vector<std::string> id_clusters;
-     hmap_uint_suint val_clusters;
+     std::tr1::unordered_map<uint, std::set<uint> > val_clusters;
      // since cluster 0 is virtual, let's fake it
      id_clusters.push_back("0");
      std::tr1::unordered_map<std::string, std::set<uint> >::iterator cit;
@@ -288,10 +292,112 @@ void MultipleNamingGame::getSilhouette() {
                id_clusters.push_back(cit->first);
                for (siit = cit->second.begin(); siit != cit->second.end();
                          ++siit) {
-                    valclusters[id_clusters.size()-1].insert(*siit);
+                    val_clusters[id_clusters.size()-1].insert(*siit);
                }
           }
      }
      // TODO Clusters ready (I hope). What else? node_clusters
 
+}
+
+void MultipleNamingGame::mergeLabels(double thold, uint simfunc) {
+     std::tr1::unordered_map<std::string, std::set<uint> > clusters;
+     hmap_ui_so::iterator it;
+     std::set<Ocurrence>::iterator sit;
+     uint nid = 0;
+     // First gather all nodes by label
+     for (it = voc_xp.begin(); it != voc_xp.end(); ++it) {
+          nid = it->first;
+          for (sit = it->second->begin(); sit != it->second->end(); ++sit) {
+               Ocurrence o = *sit;
+               clusters[o.getWord()].insert(nid);
+          }
+     }
+     std::priority_queue< std::pair<uint, std::string> > c_queue;
+     // Preparing to weed off the smaller clusters
+     std::vector<std::string> small_clusters;
+     std::tr1::unordered_map<std::string, std::set<uint> >::iterator cit;
+     for (cit = clusters.begin(); cit != clusters.end(); ++cit) {
+          if (cit->second.size() <= 3) {
+               small_clusters.push_back(cit->first);
+          } else {
+               c_queue.push(std::pair<uint, std::string>(0, cit->first));
+          }
+     }
+     for (int i = 0; i < small_clusters.size(); ++i) {
+          clusters.erase(small_clusters[i]);
+     }
+     uint priority_counter = 1;
+     std::set<std::string> already_seen;
+     std::string c1, c2;
+     std::pair<uint, std::string> qtop;
+     // Starting merge process
+     while (!c_queue.empty()) {
+          qtop = c_queue.top();
+          c_queue.pop();
+          c1 = qtop.second;
+          // If the top cluster in the queue was not yet evaluated 
+          if (already_seen.find(c1) != already_seen.end()) {
+               // Iterate and ompare to all other clusters
+               for (cit = clusters.begin(); cit != clusters.end(); ++cit) {
+                    c2 = cit->first;
+                    if (c1 != c2) {
+                         double sim = doSimilarity(&clusters[c1], 
+                                   &clusters[c2], simfunc);
+                         if (sim > thold) {
+                              // merge c1 and c2 into a c1_c2
+                              std::set<uint> c1c2; 
+                              std::merge(clusters[c1].begin(), 
+                                        clusters[c1].end(), 
+                                        clusters[c2].begin(),
+                                        clusters[c2].end(),
+                                        std::inserter(c1c2, c1c2.begin()));
+                              // add c1 and c2 to the already_seen set
+                              already_seen.insert(c1);
+                              already_seen.insert(c2);
+                              // delete c1 and c2 from clusters
+                              clusters.erase(c1);
+                              clusters.erase(c2);
+                              // Add c1_c2 to clusters
+                              std::string newc(c1 + "_" + c2);
+                              clusters[newc] = c1c2;
+                              // Add c1_c2 to queue with a higher priority
+                              ++priority_counter;
+                              c_queue.push(std::pair<uint, std::string>
+                                        (priority_counter, newc));
+                              // Stop this clusters evaluation
+                              break;
+                         }
+                    }
+               }
+               already_seen.insert(c1);
+          }
+     }
+     std::set<uint>::iterator suiit;
+     for (cit = clusters.begin(); cit != clusters.end(); ++cit) {
+          std::cout << cit->first << " -> ";
+          for (suiit = cit->second.begin(); suiit != cit->second.end(); 
+                    ++suiit) {
+               std::cout << ", " << *suiit;
+          }
+          std::cout << std::endl;
+     }
+}
+
+double MultipleNamingGame::doSimilarity(std::set<uint>* c1, std::set<uint>* c2,
+          uint func) {
+     if (func == 1) {
+          // Rationale here is assimilation. If the intersection between
+          // the two sets is almost as big as the smallest set, than
+          // it should be absorbed by the bigger one
+          std::set<uint> inter;
+          std::set_intersection(c1->begin(), c1->end(),
+               c2->begin(), c2->end(),
+               std::inserter(inter, inter.begin()));
+          uint divisor = (c1->size() < c2->size())? c1->size(): c2->size();
+          return inter.size()/(double)divisor;
+     } else {
+          std::cout << "Unknown similarity function!\n";
+          exit(1);
+     }
 }

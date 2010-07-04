@@ -24,6 +24,8 @@ class MultipleNamingGame : public NamingGame {
           Ocurrence popWordXP(uint node, std::string word);
           void dropVocabularyXP(uint node, uint num);
           void addOcurrenceXP(uint node, Ocurrence o);
+          double doSimilarity(std::set<uint>* c1, std::set<uint>* c2, 
+                    uint func);
      public:
           MultipleNamingGame();
           MultipleNamingGame(std::string filename, 
@@ -33,6 +35,7 @@ class MultipleNamingGame : public NamingGame {
           void printResults();
           void printResultsByLabel();
           void getSilhouette();
+          void mergeLabels(double thold = 0.5, uint simfunc = 1); 
 };
 
 #endif  // CLUSTERING_SCAN_MULTIPLE_NAMING_H_
