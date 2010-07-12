@@ -9,6 +9,8 @@
 
 typedef std::tr1::unordered_map<uint, std::set<Ocurrence>* > hmap_ui_so;
 
+typedef std::pair<uint, uint> nedge;
+
 /*
  * Extended naming game. Will not drop all vocabulary on successful
  * communication.
@@ -26,6 +28,7 @@ class MultipleNamingGame : public NamingGame {
           void addOcurrenceXP(uint node, Ocurrence o);
           double doSimilarity(std::set<uint>* c1, std::set<uint>* c2, 
                     uint func);
+          std::set<nedge> getEdgeSet(std::set<uint>* c);
      public:
           MultipleNamingGame();
           MultipleNamingGame(std::string filename, 

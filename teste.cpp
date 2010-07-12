@@ -22,7 +22,7 @@ int main() {
      //ng.printResultsByLabel();
      //std::cout << "Merging labels!" << std::endl;
      //std::cout << "------------------------------------" << std::endl;
-     ng.mergeLabels();
+     ng.mergeLabels(0.5, 2);
      //ng.printResultsByLabel();
      //ng.printDotClusters("marvel50nclusters.dot");
      //ng.g.printClutoFile("marvel50n.cluto");

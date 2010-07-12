@@ -6,6 +6,7 @@
 
 typedef std::tr1::unordered_map<uint, std::set<uint>* > hmap_uint_suint;
 
+
 MultipleNamingGame::MultipleNamingGame() {
 }
 
@@ -408,8 +409,38 @@ double MultipleNamingGame::doSimilarity(std::set<uint>* c1, std::set<uint>* c2,
                std::inserter(inter, inter.begin()));
           uint divisor = (c1->size() < c2->size())? c1->size(): c2->size();
           return inter.size()/(double)divisor;
+     } else if (func == 2) {
+          // Intersection namig is really only a label filter. This 
+          // similarity function tries to use real (albeit basic) 
+          // topological info for clustering
+          // In this case, we will compare not the common nodes among both
+          // clusters, but the number of common edges between them.
+          std::set<nedge> edges1, edges2, inter;
+          edges1 = getEdgeSet(c1);
+          edges2 = getEdgeSet(c2);
+          std::set_intersection(edges1.begin(), edges1.end(),
+               edges2.begin(), edges2.end(),
+               std::inserter(inter, inter.begin()));
+          uint divisor = edges1.size() + edges2.size() - inter.size();
+          return inter.size()/(double)divisor;
      } else {
           std::cout << "Unknown similarity function!\n";
           exit(1);
      }
+}
+
+std::set<nedge> MultipleNamingGame::getEdgeSet(std::set<uint>* c) {
+     std::set<uint>::iterator it;
+     std::set<nedge> edges;
+     for (it = c->begin(); it != c->end(); ++it) {
+          std::set<Edge>* nhood = g.getAdjacency(*it);
+          std::set<Edge>::iterator nit;
+          for (nit = nhood->begin(); nit != nhood->end(); ++nit) {
+               if (c->find(nit->getNode()) != c->end()) {
+                    edges.insert(nedge(*it, nit->getNode()));
+               }
+          }
+
+     }
+     return edges;
 }
