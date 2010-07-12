@@ -243,11 +243,11 @@ double ClusterEvaluator::getGraphEntropy() {
      for (it2 = clusters->begin(); it2 != clusters->end(); ++it2) {
           uint cid = it2->first;
           double cent = getClusterEntropy(cid, &voc_weights, num_entries);
-          //std::cout << "Entropy for cluster " << cid << ": " << 
-          //     cent << std::endl;
+          std::cout << "Entropy for cluster " << cid << ": " << 
+               cent << std::endl;
           entropy += cent;
      }
-     return (entropy/(double)clusters->size());
+     return entropy;
 }
 
 double ClusterEvaluator::getClusterEntropy(uint cid, hmap_s_i* vocw, 
@@ -278,7 +278,9 @@ double ClusterEvaluator::getClusterEntropy(uint cid, hmap_s_i* vocw,
      // Cluster <cid>'s relative size
      double c_rel_size = clusters->find(cid)->second->size()/
           (double)graph->graph_map.size();
-     c_rel_size = c_rel_size/(double)graph->getNumNodes();
+     //std::cout << "Cluster " << cid << " relative size: "<< c_rel_size 
+     //     << std::endl;
+     //c_rel_size = c_rel_size/(double)graph->getNumNodes();
      for (gcvit = gcvoc.begin(); gcvit != gcvoc.end(); ++gcvit) {
           // Calculate term weight relative to the whole graph
           //double tw = vocw->find(gcvit->first)->second/(double)vocw->size();
@@ -287,7 +289,9 @@ double ClusterEvaluator::getClusterEntropy(uint cid, hmap_s_i* vocw,
           //     vocw->find(gcvit->first)->second << " / " << num_entries_g <<
           //     " = " << tw << std::endl;
           // Calculate term entropy in the cluster
-          double tmp = gcvit->second/(double)num_entries;
+          //double tmp = gcvit->second/(double)num_entries;
+          double tmp = gcvit->second/
+               (double)clusters->find(cid)->second->size();
           //std::cout << "Prob(" << gcvit->first << ") = " << tmp << std::endl;
           tw = tw * (-1) * tmp * log2(tmp);// TODO entropy(ai, vj)
           //std::cout << "Entropy for term " << gcvit->first << " = " <<
