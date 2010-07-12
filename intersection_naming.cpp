@@ -129,6 +129,16 @@ void IntersectionNamingGame::run(uint rounds){
           
           swapVocabulariesXP();
      }
+     hmap_ui_so::iterator it;
+     std::set<Ocurrence>::iterator sit;
+     uint nid = 0;
+     for (it = voc_xp.begin(); it != voc_xp.end(); ++it) {
+          nid = it->first;
+          for (sit = it->second->begin(); sit != it->second->end(); ++sit) {
+               Ocurrence o = *sit;
+               clusters[o.getWord()].insert(nid);
+          }
+     }
 }
 
 

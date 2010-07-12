@@ -10,6 +10,7 @@ class NamingGame {
           int chooseNeighbor(uint node);
           virtual std::string chooseWord(uint node);
           bool communicate(uint sender, uint receiver, std::string word);
+          std::tr1::unordered_map<std::string, std::set<uint> > clusters;
      public:
           Graph g;
           NamingGame();

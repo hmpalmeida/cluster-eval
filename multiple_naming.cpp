@@ -217,6 +217,17 @@ void MultipleNamingGame::run(uint rounds) {
           //if (i % 100 == 0) std::cout << "Round " << i << std::endl;
      }
      // ??? (TODO)
+     // Gather all nodes by label
+     hmap_ui_so::iterator it;
+     std::set<Ocurrence>::iterator sit;
+     uint nid = 0;
+     for (it = voc_xp.begin(); it != voc_xp.end(); ++it) {
+          nid = it->first;
+          for (sit = it->second->begin(); sit != it->second->end(); ++sit) {
+               Ocurrence o = *sit;
+               clusters[o.getWord()].insert(nid);
+          }
+     }
      // Profit!  
 }
 
@@ -237,21 +248,6 @@ void MultipleNamingGame::printResults() {
 }
 
 void MultipleNamingGame::printResultsByLabel() {
-     std::tr1::unordered_map<std::string, std::set<uint> > clusters;
-     hmap_ui_so::iterator it;
-     std::set<Ocurrence>::iterator sit;
-     uint nid = 0;
-     // First gather all nodes by label
-     for (it = voc_xp.begin(); it != voc_xp.end(); ++it) {
-          //if (it->second->size() > 2) {
-               nid = it->first;
-               for (sit = it->second->begin(); 
-                         sit != it->second->end(); ++sit) {
-                    Ocurrence o = *sit;
-                    clusters[o.getWord()].insert(nid);
-               }
-          //}
-     }
      // Now print them!
      std::tr1::unordered_map<std::string, std::set<uint> >::iterator cit;
      std::set<uint>::iterator siit;
@@ -269,21 +265,6 @@ void MultipleNamingGame::printResultsByLabel() {
  * Calculates the Silhouette index for the clustering
  */
 void MultipleNamingGame::getSilhouette() {
-     // Runs through all the labels, getting those who are present in 
-     // more than a given threshold of nodes and prepare the data
-     // for ClusterEvaluator
-     std::tr1::unordered_map<std::string, std::set<uint> > clusters;
-     hmap_ui_so::iterator it;
-     std::set<Ocurrence>::iterator sit;
-     uint nid = 0;
-     // First gather all nodes by label
-     for (it = voc_xp.begin(); it != voc_xp.end(); ++it) {
-          nid = it->first;
-          for (sit = it->second->begin(); sit != it->second->end(); ++sit) {
-               Ocurrence o = *sit;
-               clusters[o.getWord()].insert(nid);
-          }
-     }
      std::vector<std::string> id_clusters;
      std::tr1::unordered_map<uint, std::set<uint> > val_clusters;
      // since cluster 0 is virtual, let's fake it
@@ -305,18 +286,6 @@ void MultipleNamingGame::getSilhouette() {
 }
 
 void MultipleNamingGame::mergeLabels(double thold, uint simfunc) {
-     std::tr1::unordered_map<std::string, std::set<uint> > clusters;
-     hmap_ui_so::iterator it;
-     std::set<Ocurrence>::iterator sit;
-     uint nid = 0;
-     // First gather all nodes by label
-     for (it = voc_xp.begin(); it != voc_xp.end(); ++it) {
-          nid = it->first;
-          for (sit = it->second->begin(); sit != it->second->end(); ++sit) {
-               Ocurrence o = *sit;
-               clusters[o.getWord()].insert(nid);
-          }
-     }
      std::priority_queue< std::pair<uint, std::string> > c_queue;
      // Preparing to weed off the smaller clusters
      std::vector<std::string> small_clusters;
