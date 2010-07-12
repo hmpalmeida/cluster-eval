@@ -92,6 +92,7 @@ void Graph::readGmlFile(std::string filename) {
                               // Setting the id as the label, for the case
                               // that the nodehas no labels
                               graph_labels[nid] = value;
+                              //label_id[value] = nid;
                          } else if (attr == "attributes") {
                               file >> attr;
                               if (attr != "[") {
@@ -110,6 +111,7 @@ void Graph::readGmlFile(std::string filename) {
                               value = tmp;
                               value.erase(0, 1);
                               graph_labels[nid] = value;
+                              label_id[value] = nid;
                          }
                          // Rinse. Repeat
                          file >> attr;
@@ -663,4 +665,8 @@ hmap_i_i Graph::dijkstra(unsigned int source) {
           }
      }
      return distance;
+}
+
+uint Graph::getNodeLabelId(std::string label) {
+     return label_id[label];
 }

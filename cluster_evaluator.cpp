@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include "cluster_evaluator.hpp"
+#include <cmath>
 
 /********************************************************************
 * Modularity Stuff
@@ -109,31 +110,31 @@ float ClusterEvaluator::getModularity() {
      SquareMatrix<float> matrix(num_clusters+1);
      e = matrix;
      buildAssortativityMatrix(e);
-     std::cout << "Matrix e:" << std::endl;
-     printSquareMatrix(e, num_clusters+1);
-     std::cout << "---------------------------------------" << std::endl;
+     //std::cout << "Matrix e:" << std::endl;
+     //printSquareMatrix(e, num_clusters+1);
+     //std::cout << "---------------------------------------" << std::endl;
      // 2 -  Calculate Trace(e) = SUM_{i} e_{ii}      
      float tr = 0.0;
      for (int i = 0; i <= num_clusters; ++i){
           tr += e[i][i];
      }
-     std::cout << "Trace is: " << tr << std::endl;
+     //std::cout << "Trace is: " << tr << std::endl;
      //std::cout << "Calculate trace (e): DONE!" << std::endl;
      // 3 - Calculate e^2
      SquareMatrix<float> matrix2(num_clusters+1);
      float** e_squared;
      e_squared = matrix2;
      squareMatrixMultiplication(e, e, e_squared, num_clusters+1);
-     std::cout << "Matrix e squared:" << std::endl;
-     printSquareMatrix(e_squared, num_clusters+1);
-     std::cout << "---------------------------------------" << std::endl;
+     //std::cout << "Matrix e squared:" << std::endl;
+     //printSquareMatrix(e_squared, num_clusters+1);
+     //std::cout << "---------------------------------------" << std::endl;
      //std::cout << "Calculate e^2: DONE!" << std::endl;
      // 4 - Sum all elements of e^2 (||e^2||)
      float sum_e = sumElementsSquareMatrix(e_squared, num_clusters+1);
-     std::cout << "Sum is: " << sum_e << std::endl;
+     //std::cout << "Sum is: " << sum_e << std::endl;
      //std::cout << "Sum all elements e^2 (||e^2||): DONE!" << std::endl;
      // 5 - Q = tr - ||e^2||
-     std::cout << "Modularity is: " << tr - sum_e << std::endl;
+     //std::cout << "Modularity is: " << tr - sum_e << std::endl;
      return tr - sum_e;
 }
 
@@ -210,4 +211,89 @@ std::vector<double> ClusterEvaluator::getSilhouetteIndex() {
           silhouette[0] += silhouette[i]/(double)(silhouette.size()-1);
      }
      return silhouette;
+}
+
+// The entropy calculus is basically the one used in Yang Zhou's
+// "Graph Clustering Based on Structural/Attribute Similarities"
+double ClusterEvaluator::getGraphEntropy() {
+     double entropy = 0;
+     // Get label weights. Those will be given by their replication
+     hmap_s_i voc_weights; 
+     std::set<std::string>* voc;
+     std::set<std::string>::iterator vit;
+     hmap::iterator it;
+     uint num_entries = 0;
+     for (it = graph->graph_map.begin(); 
+               it != graph->graph_map.end(); ++it) {
+          // Get node Vocabulary
+          voc = graph->getVocabulary(it->first);
+          // Insert elements in the global cluster vocabulary set
+          for (vit = voc->begin(); vit != voc->end(); ++vit) {
+               if (voc_weights.find(*vit) == voc_weights.end()) {
+                    voc_weights[*vit] = 1;
+               } else {
+                    voc_weights[*vit] = voc_weights[*vit] + 1;
+               }
+               ++ num_entries;
+          }
+     }
+     // Iterating through each cluster
+     hmap_uint_suint::iterator it2;
+     std::set<uint>::iterator sit;
+     for (it2 = clusters->begin(); it2 != clusters->end(); ++it2) {
+          uint cid = it2->first;
+          double cent = getClusterEntropy(cid, &voc_weights, num_entries);
+          //std::cout << "Entropy for cluster " << cid << ": " << 
+          //     cent << std::endl;
+          entropy += cent;
+     }
+     return (entropy/(double)clusters->size());
+}
+
+double ClusterEvaluator::getClusterEntropy(uint cid, hmap_s_i* vocw, 
+          uint num_entries_g) {
+     // Gather all terms of all elements in the cluster
+     hmap_s_i gcvoc; 
+     std::set<std::string>* voc;
+     std::set<std::string>::iterator vit;
+     std::set<uint>::iterator it;
+     uint num_entries = 0;
+     std::set<uint>* celements = clusters->find(cid)->second;
+     for (it = celements->begin(); it != celements->end(); ++it) {
+          // Get node Vocabulary
+          voc = graph->getVocabulary(*it);
+          // Insert elements in the global cluster vocabulary set
+          for (vit = voc->begin(); vit != voc->end(); ++vit) {
+               if (gcvoc.find(*vit) == gcvoc.end()) {
+                    gcvoc[*vit] = 1;
+               } else {
+                    gcvoc[*vit] = gcvoc[*vit] + 1;
+               }
+               ++ num_entries;
+          }
+     }
+     // For each of those terms, get its entropy in the cluster
+     hmap_s_i::iterator gcvit;
+     double c_entropy = 0;
+     // Cluster <cid>'s relative size
+     double c_rel_size = clusters->find(cid)->second->size()/
+          (double)graph->graph_map.size();
+     c_rel_size = c_rel_size/(double)graph->getNumNodes();
+     for (gcvit = gcvoc.begin(); gcvit != gcvoc.end(); ++gcvit) {
+          // Calculate term weight relative to the whole graph
+          //double tw = vocw->find(gcvit->first)->second/(double)vocw->size();
+          double tw = vocw->find(gcvit->first)->second/(double)num_entries_g;
+          //std::cout << "Tw[" << gcvit->first << "] = " << 
+          //     vocw->find(gcvit->first)->second << " / " << num_entries_g <<
+          //     " = " << tw << std::endl;
+          // Calculate term entropy in the cluster
+          double tmp = gcvit->second/(double)num_entries;
+          //std::cout << "Prob(" << gcvit->first << ") = " << tmp << std::endl;
+          tw = tw * (-1) * tmp * log2(tmp);// TODO entropy(ai, vj)
+          //std::cout << "Entropy for term " << gcvit->first << " = " <<
+          //     tw << std::endl;
+          c_entropy += tw;
+     }
+     c_entropy = c_entropy * c_rel_size;
+     return c_entropy;
 }

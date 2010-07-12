@@ -17,6 +17,7 @@
 typedef std::tr1::unordered_map< uint, std::set<Edge>*> hmap;
 typedef std::tr1::unordered_map< uint, std::set<std::string>*> hmap_i_ss;
 typedef std::tr1::unordered_map< uint, std::string > hmap_i_s;
+typedef std::tr1::unordered_map< std::string, uint > hmap_s_i;
 typedef std::tr1::unordered_map< uint, uint > hmap_i_i;
 
 // Class definition. Will probably grow.
@@ -30,6 +31,7 @@ class Graph{
           void addEdge(uint node1, uint node2, double weight = 1.0);
           void normalizeWeights();
           hmap_i_s graph_labels;
+          hmap_s_i label_id;
      public:
           hmap graph_map;
           // Gambiarra? sim, mas...
@@ -56,6 +58,7 @@ class Graph{
           void printClutoFile(std::string filename);
           bool isDirected();
           hmap_i_i dijkstra(uint source);
+          uint getNodeLabelId(std::string label);
 };
 
 #endif  // CLUSTERING_GRAPH_H_

@@ -8,12 +8,13 @@
 #include <stdlib.h>
 #include <fstream>
 #include "cluster_evaluator.hpp"
+#include "intersection_naming.hpp"
 
 /* 
  * Loads a file with clustering data for evaluation
  */
 void getClusters(char* fclusters, hmap_uint_suint* clusters, 
-          std::vector<std::string>* id_clusters ) {
+          std::vector<std::string>* id_clusters, Graph* g) {
      std::set<uint>* tmpset = NULL;
      // as always, no cluster 0
      id_clusters->push_back("");
@@ -41,7 +42,11 @@ void getClusters(char* fclusters, hmap_uint_suint* clusters,
           if (tmpset == NULL) tmpset = new std::set<uint>;
           for (int i = 2; i < tokens.size(); ++i){
                // Node ids
-               tmpset->insert(atoi(tokens[i].c_str()));
+               // FIXME O problema está aqui. Ele assume que os vertices  são
+               // inteiros, o que não necessaiamente são. Precisamos montar
+               // um registro de quais os ids para cada nó. Graph já tem isso?
+               //tmpset->insert(atoi(tokens[i].c_str()));
+               tmpset->insert(g->getNodeLabelId(tokens[i]));
           }
           clusters->insert(std::pair<uint, std::set<uint>* >(cid, tmpset));
           tmpset = NULL;
@@ -59,7 +64,7 @@ void evaluate(char* fgraph, char* fclusters) {
      // Loading the cluster data
      std::vector<std::string> id_clusters;
      hmap_uint_suint clusters;
-     getClusters(fclusters, &clusters, &id_clusters);
+     getClusters(fclusters, &clusters, &id_clusters, &gr);
      // Generating the clusters by node data
      hmap_uint_suint cluster_label;
      hmap_uint_suint::const_iterator it;
@@ -90,6 +95,9 @@ void evaluate(char* fgraph, char* fclusters) {
      float mod = ce.getModularity();
      std::cout << "Modularity is: " << mod << std::endl;
 
+     float ent = ce.getGraphEntropy();
+     std::cout << "Entropy is: " << ent << std::endl;
+     
      // Cleaning allocs
      for (it = clusters.begin(); it != clusters.end(); ++it) {
           delete it->second;

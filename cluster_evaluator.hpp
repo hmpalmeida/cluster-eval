@@ -23,5 +23,7 @@ class ClusterEvaluator {
           void loadClusters(hmap_uint_suint* cls, hmap_uint_suint* nc);
           float getModularity();
           std::vector<double> getSilhouetteIndex();
-          //std::vector<double> getSilhouetteIndex(hmap_uint_suint* nc);
+          double getGraphEntropy();
+          double getClusterEntropy(uint cid, hmap_s_i* vocw, 
+                    uint num_entries_g);
 };
