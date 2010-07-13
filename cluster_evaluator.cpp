@@ -14,9 +14,11 @@ ClusterEvaluator::ClusterEvaluator(Graph* g) {
 }
 
 ClusterEvaluator::ClusterEvaluator(Graph* g, hmap_uint_suint* cls, 
-          hmap_uint_suint* nc) {
+          hmap_uint_suint* nc, std::vector<std::string>* clbs, uint vnn) {
      loadGraph(g);
      loadClusters(cls, nc);
+     cluster_labels = clbs;
+     v_num_nodes = vnn;
 }
 
 ClusterEvaluator::~ClusterEvaluator() {
@@ -242,9 +244,10 @@ double ClusterEvaluator::getGraphEntropy() {
      std::set<uint>::iterator sit;
      for (it2 = clusters->begin(); it2 != clusters->end(); ++it2) {
           uint cid = it2->first;
+          //std::cout << "----------------------------------------------\n";
           double cent = getClusterEntropy(cid, &voc_weights, num_entries);
-          std::cout << "Entropy for cluster " << cid << ": " << 
-               cent << std::endl;
+          std::cout << "Entropy for cluster " << cid << " (" << 
+               cluster_labels->at(cid) << "): " << cent << std::endl;
           entropy += cent;
      }
      return entropy;
@@ -281,9 +284,9 @@ double ClusterEvaluator::getClusterEntropy(uint cid, hmap_s_i* vocw,
      //std::cout << "Cluster " << cid << " relative size: "<< c_rel_size 
      //     << std::endl;
      //c_rel_size = c_rel_size/(double)graph->getNumNodes();
+     c_rel_size = c_rel_size/(double)(v_num_nodes + graph->getNumNodes());
      for (gcvit = gcvoc.begin(); gcvit != gcvoc.end(); ++gcvit) {
           // Calculate term weight relative to the whole graph
-          //double tw = vocw->find(gcvit->first)->second/(double)vocw->size();
           double tw = vocw->find(gcvit->first)->second/(double)num_entries_g;
           //std::cout << "Tw[" << gcvit->first << "] = " << 
           //     vocw->find(gcvit->first)->second << " / " << num_entries_g <<

@@ -121,4 +121,6 @@ std::string rand_alnum_str (uint sz);
 
 std::vector<std::string> stringTokenizer(std::string line);
 
+bool isNumber(std::string s);
+
 #endif  // CLUSTERING_SCAN_UTILS_H_

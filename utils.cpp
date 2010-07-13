@@ -93,6 +93,17 @@ std::vector<std::string> stringTokenizer(std::string line) {
      return tokens;
 }
 
+bool isNumber(std::string s) {
+     if (s.size() == 0) return false;
+     bool number = true;
+     unsigned int pos = 0;
+     while (number && (pos < s.size())) {
+          if (!isdigit(s[pos])) number = false;
+          ++pos;
+     }
+     return number;
+}
+
 /*
 template <typename T>
 std::string to_string(const T& value){

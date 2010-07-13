@@ -670,3 +670,12 @@ hmap_i_i Graph::dijkstra(unsigned int source) {
 uint Graph::getNodeLabelId(std::string label) {
      return label_id[label];
 }
+
+bool Graph::nodeLabelExists(std::string label) {
+     if (label_id.find(label) == label_id.end()) {
+          //label does not exist
+          return false;
+     } else {
+          return true;
+     }
+}

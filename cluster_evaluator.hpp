@@ -11,13 +11,17 @@ class ClusterEvaluator {
           unsigned int num_clusters;
           Graph* graph;
           hmap_uint_suint* clusters;
+          std::vector<std::string>* cluster_labels;
           // Clusters by node
           hmap_uint_suint* node_cluster;
           void buildAssortativityMatrix(float** e);
+          unsigned int v_num_nodes;
      public:
           ClusterEvaluator();
           ClusterEvaluator(Graph* g);
-          ClusterEvaluator(Graph* g, hmap_uint_suint* cls, hmap_uint_suint* nc);
+          ClusterEvaluator(Graph* g, hmap_uint_suint* cls, 
+                    hmap_uint_suint* nc, std::vector<std::string>* clbs,
+                    uint vnn);
           ~ClusterEvaluator();
           void loadGraph(Graph* g);
           void loadClusters(hmap_uint_suint* cls, hmap_uint_suint* nc);

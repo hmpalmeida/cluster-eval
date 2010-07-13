@@ -59,6 +59,7 @@ class Graph{
           bool isDirected();
           hmap_i_i dijkstra(uint source);
           uint getNodeLabelId(std::string label);
+          bool nodeLabelExists(std::string label);
 };
 
 #endif  // CLUSTERING_GRAPH_H_

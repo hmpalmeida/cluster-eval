@@ -13,7 +13,7 @@
 /* 
  * Loads a file with clustering data for evaluation
  */
-void getClusters(char* fclusters, hmap_uint_suint* clusters, 
+uint getClusters(char* fclusters, hmap_uint_suint* clusters, 
           std::vector<std::string>* id_clusters, Graph* g) {
      std::set<uint>* tmpset = NULL;
      // as always, no cluster 0
@@ -24,6 +24,9 @@ void getClusters(char* fclusters, hmap_uint_suint* clusters,
      cluster_file.open(fclusters);
      uint field_counter, cid = 1;
      getline(cluster_file, line);
+     // To count the nodes who appear in multiple clusters
+     uint v_num_nodes = 0;
+     std::set<uint> nodes;
      while (!cluster_file.eof()) {
           // parse it!
           tokens = stringTokenizer(line);
@@ -46,13 +49,32 @@ void getClusters(char* fclusters, hmap_uint_suint* clusters,
                // inteiros, o que não necessaiamente são. Precisamos montar
                // um registro de quais os ids para cada nó. Graph já tem isso?
                //tmpset->insert(atoi(tokens[i].c_str()));
-               tmpset->insert(g->getNodeLabelId(tokens[i]));
+               uint node_id;
+               if (isNumber(tokens[i])) {
+                    // May already be the node's id. Check
+                    if (g->nodeLabelExists(tokens[i])) {
+                         // Well, it IS a label. Who knew! Proceed as usual
+                         node_id = g->getNodeLabelId(tokens[i]);
+                    } else {
+                         // Not a known label, so it is already a node id!
+                         node_id = atoi(tokens[i].c_str());
+                    }
+               } else {
+                    node_id = g->getNodeLabelId(tokens[i]);
+               }
+               tmpset->insert(node_id);
+               if (nodes.find(node_id) != nodes.end()) {
+                    ++v_num_nodes;
+               } else {
+                    nodes.insert(node_id);
+               }
           }
           clusters->insert(std::pair<uint, std::set<uint>* >(cid, tmpset));
           tmpset = NULL;
           getline(cluster_file, line);
      }
      cluster_file.close();
+     return v_num_nodes;
 }
 
 void getClustersByNode() {
@@ -64,7 +86,7 @@ void evaluate(char* fgraph, char* fclusters) {
      // Loading the cluster data
      std::vector<std::string> id_clusters;
      hmap_uint_suint clusters;
-     getClusters(fclusters, &clusters, &id_clusters, &gr);
+     uint vnn = getClusters(fclusters, &clusters, &id_clusters, &gr);
      // Generating the clusters by node data
      hmap_uint_suint cluster_label;
      hmap_uint_suint::const_iterator it;
@@ -86,7 +108,7 @@ void evaluate(char* fgraph, char* fclusters) {
           }
      }
      // Starting the cluster evaluator
-     ClusterEvaluator ce(&gr, &clusters, &cluster_label);
+     ClusterEvaluator ce(&gr, &clusters, &cluster_label, &id_clusters, vnn);
      std::vector<double> sil = ce.getSilhouetteIndex();
      for (int i = 1; i < sil.size(); ++i) {
           std::cout << "Si for cluster " << i << ": " << 
