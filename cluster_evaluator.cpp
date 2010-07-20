@@ -150,9 +150,11 @@ std::vector<double> ClusterEvaluator::getSilhouetteIndex() {
      hmap_i_i::iterator it;
      hmap_i_i spaths;
      hmap::iterator node;
-     int ccount;
+     //int ccount;
      double an = 0.0;
      int bn = MAXIMUM;
+     hmap_i_i ccount;
+     hmap_i_i acc;
      std::vector<double> silhouette(clusters->size()+1);
      std::vector<int> node_count(clusters->size()+1);
      // Initializing average counters
@@ -163,6 +165,7 @@ std::vector<double> ClusterEvaluator::getSilhouetteIndex() {
      // For each node n in the graph
      unsigned int mycluster;
      std::set<uint>* ctmp;
+     std::set<uint>::iterator itcl;
      for (node = graph->graph_map.begin(); node != graph->graph_map.end();
                ++node){
           // We will not calculate the Silhouette index for the
@@ -176,33 +179,45 @@ std::vector<double> ClusterEvaluator::getSilhouetteIndex() {
                if (mycluster != 0) {
                     // Calculate the shortest paths for all nodes
                     spaths = graph->dijkstra(node->first);
-                    an = 0.0;
-                    ccount = 0;
-                    bn = MAXIMUM;
+                    acc.clear();
+                    ccount.clear();
                     for (it = spaths.begin(); it != spaths.end(); ++it) {
                          if (it->first != node->first){
                               ctmp = node_cluster->find(it->first)->second;
-                              if (ctmp->find(mycluster) != ctmp->end()) {
-                                   // Calculate it's the average distance to 
-                                   // the other members of his cluster (an)
-                                   an += it->second;
-                                   ++ccount;
-                              } else {
-                                   // Calculate smallest distance from 
-                                   // him to any other cluster (bn)
-                                   if (it->second < bn) bn = it->second;
+                              // Iterate through all of its clusters
+                              for (itcl = ctmp->begin(); itcl != ctmp->end();
+                                        ++itcl) { 
+                                   if (acc.find(*itcl) == acc.end()) {
+                                        // New cluster!
+                                        acc[*itcl] = it->second;
+                                        ccount[*itcl] = 1;
+                                   } else {
+                                        // Already exists. Accumulate
+                                        acc[*itcl] = acc[*itcl] + it->second;
+                                        ccount[*itcl] = ccount[*itcl] + 1;
+                                   }
                               }
                          }
                     }
-                    an = an/(double)ccount;
+                    // Calculate average cluster distances
+                    an = 0.0;
+                    bn = MAXIMUM;
+                    for (it = acc.begin(); it != acc.end(); ++it) {
+                         if (it->first == mycluster) {
+                              // Average distance to own cluster
+                              an = it->second/(double)ccount[it->first];
+                         } else {
+                              // Minimum average distance to other clusters
+                              double btmp = it->second/
+                                   (double)ccount[it->first];
+                              if (btmp < bn) bn = btmp;
+                         }
+                    }
+                    //an = an/(double)ccount;
                     // His Silhouette index is Sn = (bn - an)/max(an, bn)
                     silhouette[mycluster] += (bn - an)/
                          ((an > (double) bn)? an:(double)bn);
                     node_count[mycluster] += 1;
-                    // TODO Final value will be the average?
-                    // Return the average value for each cluster. 
-                    //std::cout << "Silhouette index for node "<< node->first <<
-                    //     " = " << to_string(silhouette) << std::endl; 
                }
           }
      }
