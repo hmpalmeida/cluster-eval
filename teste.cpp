@@ -9,12 +9,12 @@
 #include <set>
 
 int main() {
-     //NamingGame ng("data/football.gml");
-     //MultipleNamingGame ng("data/marvel-graph-20t-nosheref.gml", 30, 1);
-     IntersectionNamingGame ng("data/marvel-graph-50n-nosheref.gml");
+     //NamingGame ng("data/dblp-lcc.gml");
+     //MultipleNamingGame ng("data/dblp-lcc.gml", 50, 3);
+     //IntersectionNamingGame ng("data/marvel-graph-50n-nosheref.gml");
      //IntersectionNamingGame ng("data/teste.gml");
-     //IntersectionNamingGame ng("data/marvel-graph-50n.gml");
-     //ng.loadRandomWord(15);
+     IntersectionNamingGame ng("data/dblp-lcc.gml");
+     //ng.loadRandomWord(40);
      //ng.g.printDotFile("marvel50n.dot");
      ng.run(10);
      //ng.printResults();
@@ -22,7 +22,7 @@ int main() {
      //ng.printResultsByLabel();
      //std::cout << "Merging labels!" << std::endl;
      //std::cout << "------------------------------------" << std::endl;
-     ng.mergeLabels(0.5, 2);
+     ng.mergeLabels2(0.5);
      ng.printResultsByLabel();
      //ng.printDotClusters("marvel50nclusters.dot");
      //ng.g.printClutoFile("marvel50n.cluto");

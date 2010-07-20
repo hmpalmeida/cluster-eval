@@ -119,7 +119,8 @@ char rand_alnum();
 // Returns a random string of size sz
 std::string rand_alnum_str (uint sz);
 
-std::vector<std::string> stringTokenizer(std::string line);
+std::vector<std::string> stringTokenizer(std::string line, 
+          std::string delim = " ");
 
 bool isNumber(std::string s);
 

@@ -80,7 +80,7 @@ void NamingGame::run(uint rounds) {
           }
           // Choose one random word from the sender;
           word = chooseWord(sender);
-          // Send him an random word. Hijinks ensue
+          // Send him a random word. Hijinks ensue
           communicate(sender, receiver, word);
           // FIXME Testing only
           //printResults();
@@ -202,7 +202,7 @@ void NamingGame::printResultsByLabel() {
           std::cout << cit->first << " -> ";
           for (siit = cit->second.begin(); siit != cit->second.end();
                     ++siit) {
-               std::cout << " , " << g.getNodeLabel(*siit);
+               std::cout << "  " << g.getNodeLabel(*siit);
           }
           std::cout << std::endl;
      }

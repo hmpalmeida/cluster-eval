@@ -101,9 +101,6 @@ bool MultipleNamingGame::communicate(uint sender, uint receiver,
      }
 }
 
-// TODO Arrumar para que a variavel num_drops exista. Poderia adaptar tudo
-// para usar a mesma função para liberar espaço quando o vocabulario chegar
-// no limite?
 
 std::set<Ocurrence>* MultipleNamingGame::getVocabularyXP(uint node) {
      return voc_xp[node];
@@ -114,20 +111,10 @@ Ocurrence MultipleNamingGame::popWordXP(uint node, std::string word) {
      Ocurrence o(word);
      it = voc_xp[node]->find(o);
      if (it == voc_xp[node]->end()) {
-          //std::cout << "Didn\'t find word: " << o.getWord() << std::endl;
-          //std::cout << "Among " << voc_xp[node]->size() <<  " elements: ";
-          //std::set<Ocurrence>::iterator it2;
-          //Ocurrence xx;
-          //for (it2 = voc_xp[node]->begin(); it2 != voc_xp[node]->end(); ++it2){
-          //     xx = *it2;
-          //     std::cout << " , " << xx.getPrintable(); 
-          //}
-          //std::cout << std::endl;
           // <node> does not know about the bird
           Ocurrence empty_o;
           return empty_o;
      } else {
-          //std::cout << "Found word: " << o.getWord() << std::endl;
           // <node> knows that the bird is the word
           // Upgrade the word rating
           o = *it;
@@ -143,13 +130,6 @@ void MultipleNamingGame::dropVocabularyXP(uint node, uint num) {
      // the oldest stuff
      std::vector<Ocurrence> vec(voc_xp[node]->begin(), voc_xp[node]->end());
      std::sort(vec.begin(), vec.end(), decreasingSortOcurrence);
-     // FIXME TESTING
-     /*     
-     for (int i = 0; i < vec.size(); ++i) {
-               std::cout << vec[i].getPrintable() << std::endl;
-     }
-     std::cout << "Will remove: " << vec[0].getPrintable() << std::endl;
-     */
      // TODO Keeping one element always. Should I?
      while (voc_xp[node]->size() > 0 && count < num_drops) {
           // Remove the worse ranked ocurrence
@@ -313,13 +293,13 @@ void MultipleNamingGame::mergeLabels(double thold, uint simfunc) {
      std::pair<uint, std::string> qtop;
      // Starting merge process
      while (!c_queue.empty()) {
-          //std::cout << "---------------------------------" << std::endl;
-          //std::cout << "Starting loop. Heap size: " << c_queue.size() <<
-          //     std::endl;
+          std::cout << "---------------------------------" << std::endl;
+          std::cout << "Starting loop. Heap size: " << c_queue.size() <<
+               std::endl;
           qtop = c_queue.top();
           c_queue.pop();
           c1 = qtop.second;
-          //std::cout << "Top Element: " << c1 << std::endl;
+          std::cout << "Top Element: " << c1 << std::endl;
           // If the top cluster in the queue was not yet evaluated 
           if (already_seen.find(c1) == already_seen.end()) {
                //std::cout << "Never seen. Comparing to other clusters..\n";
@@ -333,7 +313,7 @@ void MultipleNamingGame::mergeLabels(double thold, uint simfunc) {
                          //std::cout << "Sim(" << c1 << ", " << c2 << ") = " <<
                          //     sim << std::endl;
                          if (sim > thold) {
-                              //std::cout << "Merging! (I hope...)\n";
+                              std::cout << "Merging! (I hope...)\n";
                               // merge c1 and c2 into a c1_c2
                               std::set<uint> c1c2; 
                               std::merge(clusters[c1].begin(), 
@@ -363,6 +343,102 @@ void MultipleNamingGame::mergeLabels(double thold, uint simfunc) {
           }
      }
 }
+
+
+// Test for a faster merging algorithm
+void MultipleNamingGame::mergeLabels2(double thold) {
+     //std::priority_queue< std::pair<uint, std::string> > c_queue;
+     typedef std::pair<std::string, std::set<nedge> > p_cluster_edges;
+     std::vector<p_cluster_edges> c_queue;
+     // Preparing to weed off the smaller clusters
+     std::vector<std::string> small_clusters;
+     std::tr1::unordered_map<std::string, std::set<uint> >::iterator cit;
+     for (cit = clusters.begin(); cit != clusters.end(); ++cit) {
+          if (cit->second.size() < 3) {
+               small_clusters.push_back(cit->first);
+          } else {
+               // TODO pegar os edgesets aqui
+               c_queue.push_back(p_cluster_edges(cit->first, 
+                         getEdgeSet(&cit->second)));
+          }
+     }
+     for (int i = 0; i < small_clusters.size(); ++i) {
+          clusters.erase(small_clusters[i]);
+     }
+     std::set<std::string> merged;
+     std::string c1, c2;
+     bool DEBUG = false;
+     // Starting merge process
+     for (int i = 0; i < c_queue.size(); ++i) {
+          std::cout << "---------------------------------" << std::endl;
+          c1 = c_queue[i].first;
+          std::cout << "Cluster: " << c1 << "( " << i << " / " << 
+               c_queue.size() << " ) -> size = " << 
+               c_queue[i].second.size() << ". Merged: " <<
+              merged.size() << std::endl;
+          //if (c1 == "reseda") DEBUG = true; else DEBUG = false;
+          // If the top cluster in the queue was not yet evaluated 
+          if (merged.find(c1) == merged.end()) {
+               if (DEBUG) {
+                    std::cout << "Cluster " << c1 << " never seen. \n";
+               }
+               // Iterate and compare to all other clusters
+               for (int j = 0; j < c_queue.size(); ++j) {
+                    c2 = c_queue[j].first;
+                    if ((c1 != c2) && 
+                              (merged.find(c2) == merged.end())) {
+                         if (DEBUG) {
+                              std::cout << "Comparing to " << c2 << " ...";
+                         }
+                         //std::cout << "To cluster: " << c2 << std::endl;
+                         // TODO similarity
+                         double sim = doSimilarity(&c_queue[i].second, 
+                                   &c_queue[j].second);
+                         //std::cout << "Sim(" << c1 << ", " << c2 << ") = " <<
+                         //     sim << std::endl;
+                         if (sim > thold) {
+                              if (DEBUG) {
+                                   std::cout << "HIT! S = " << sim << std::endl;
+                              }
+                              //std::cout << "Merging (" << c1 << " | "<< 
+                              //    c2 << ")\n";
+                              // merge c1 and c2 into a c1_c2
+                              std::set<uint> c1c2; 
+                              std::merge(clusters[c1].begin(), 
+                                        clusters[c1].end(), 
+                                        clusters[c2].begin(),
+                                        clusters[c2].end(),
+                                        std::inserter(c1c2, c1c2.begin()));
+                              // add c2 to the already_seen set
+                              // If we added c1, a possible, yet unseen, merge
+                              // of c2 to a c3 would never be seen
+                              merged.insert(c2);
+                              // delete c1 and c2 from clusters
+                              //clusters.erase(c1);
+                              clusters.erase(c2);
+                              // Add c1_c2 to clusters
+                              //std::string newc(c1 + "_" + c2);
+                              //clusters[newc] = c1c2;
+                              clusters[c1] = c1c2;
+                              // TODO add merged contents to c_queue->c1 
+                              // for further merges
+                              std::set<nedge> ec1c2;
+                              std::merge(c_queue[i].second.begin(),
+                                        c_queue[i].second.end(),
+                                        c_queue[j].second.begin(),
+                                        c_queue[j].second.end(),
+                                        std::inserter(ec1c2, ec1c2.begin()));
+                              c_queue[i] = p_cluster_edges(c1, ec1c2);
+                              // "Baptize" new c1
+                              //c1 = newc;
+                         }
+                    }
+               }
+               //already_seen.insert(c1);
+          }
+     }
+}
+
 
 double MultipleNamingGame::doSimilarity(std::set<uint>* c1, std::set<uint>* c2,
           uint func) {
@@ -397,6 +473,19 @@ double MultipleNamingGame::doSimilarity(std::set<uint>* c1, std::set<uint>* c2,
           exit(1);
      }
 }
+
+double MultipleNamingGame::doSimilarity(std::set<nedge>* c1, 
+          std::set<nedge>* c2) {
+     std::set<nedge> inter;
+     std::set_intersection(c1->begin(), c1->end(),
+               c2->begin(), c2->end(),
+               std::inserter(inter, inter.begin()));
+     //uint divisor = edges1.size() + edges2.size() - inter.size();
+     uint divisor = (c1->size() < c2->size())? 
+               c1->size(): c2->size();
+     return inter.size()/(double)divisor;
+}
+
 
 std::set<nedge> MultipleNamingGame::getEdgeSet(std::set<uint>* c) {
      std::set<uint>::iterator it;

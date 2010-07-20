@@ -28,6 +28,7 @@ class MultipleNamingGame : public NamingGame {
           void addOcurrenceXP(uint node, Ocurrence o);
           double doSimilarity(std::set<uint>* c1, std::set<uint>* c2, 
                     uint func);
+          double doSimilarity(std::set<nedge>* c1, std::set<nedge>* c2);
           std::set<nedge> getEdgeSet(std::set<uint>* c);
      public:
           MultipleNamingGame();
@@ -39,6 +40,7 @@ class MultipleNamingGame : public NamingGame {
           void printResultsByLabel();
           void getSilhouette();
           void mergeLabels(double thold = 0.5, uint simfunc = 1); 
+          void mergeLabels2(double thold = 0.5); 
 };
 
 #endif  // CLUSTERING_SCAN_MULTIPLE_NAMING_H_
