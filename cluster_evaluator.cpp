@@ -302,7 +302,8 @@ double ClusterEvaluator::getClusterEntropy(uint cid, hmap_s_i* vocw,
      c_rel_size = c_rel_size/(double)(v_num_nodes + graph->getNumNodes());
      for (gcvit = gcvoc.begin(); gcvit != gcvoc.end(); ++gcvit) {
           // Calculate term weight relative to the whole graph
-          double tw = vocw->find(gcvit->first)->second/(double)num_entries_g;
+          //double tw = vocw->find(gcvit->first)->second/(double)num_entries_g;
+          double tw = 1;
           //std::cout << "Tw[" << gcvit->first << "] = " << 
           //     vocw->find(gcvit->first)->second << " / " << num_entries_g <<
           //     " = " << tw << std::endl;
@@ -311,11 +312,26 @@ double ClusterEvaluator::getClusterEntropy(uint cid, hmap_s_i* vocw,
           double tmp = gcvit->second/
                (double)clusters->find(cid)->second->size();
           //std::cout << "Prob(" << gcvit->first << ") = " << tmp << std::endl;
-          tw = tw * (-1) * tmp * log2(tmp);// TODO entropy(ai, vj)
+          //tw = tw * (-1) * tmp * log2(tmp);// TODO entropy(ai, vj)
+          tw = tw * (-1) * tmp * log10(tmp);// TODO entropy(ai, vj)
           //std::cout << "Entropy for term " << gcvit->first << " = " <<
           //     tw << std::endl;
           c_entropy += tw;
      }
      c_entropy = c_entropy * c_rel_size;
      return c_entropy;
+}
+
+/******************************************************
+  * Conductance calculus functions
+  ****************************************************/
+// Also known as alpha(C), where C is a clustering C1, C2, ... Ck
+double getIntraclusterConductance() {
+     // It's the minimum of phi(G[Ci]), where G([Ci]) is the subgraph
+     // induced by the vertices from cluster Ci (graph phi)
+}
+
+// Also known as sigma(C), with C being the same thing as in alpha
+double getInterclusterConductance() {
+     // It's 1 - the maximum value of phi(Ci) (cluster phi)
 }

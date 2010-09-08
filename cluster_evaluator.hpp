@@ -14,6 +14,7 @@ class ClusterEvaluator {
           std::vector<std::string>* cluster_labels;
           // Clusters by node
           hmap_uint_suint* node_cluster;
+          // For Modularity
           void buildAssortativityMatrix(float** e);
           unsigned int v_num_nodes;
      public:
@@ -25,9 +26,15 @@ class ClusterEvaluator {
           ~ClusterEvaluator();
           void loadGraph(Graph* g);
           void loadClusters(hmap_uint_suint* cls, hmap_uint_suint* nc);
+          // Modularity
           float getModularity();
+          // Silhouette
           std::vector<double> getSilhouetteIndex();
+          // Entropy
           double getGraphEntropy();
           double getClusterEntropy(uint cid, hmap_s_i* vocw, 
                     uint num_entries_g);
+          // Conductance
+          double getIntraclusterConductance();
+          double getInterclusterConductance();
 };
