@@ -326,12 +326,60 @@ double ClusterEvaluator::getClusterEntropy(uint cid, hmap_s_i* vocw,
   * Conductance calculus functions
   ****************************************************/
 // Also known as alpha(C), where C is a clustering C1, C2, ... Ck
-double getIntraclusterConductance() {
+double ClusterEvaluator::getIntraclusterConductance() {
      // It's the minimum of phi(G[Ci]), where G([Ci]) is the subgraph
      // induced by the vertices from cluster Ci (graph phi)
+     double min = 999999.0;
+     hmap_uint_suint::iterator it;
+     for (it = clusters->begin(); it != clusters->end(); ++it) {
+          double val = getGraphPhi(it->second);
+          if (val < min) min = val; 
+     }
+     return min;
 }
 
 // Also known as sigma(C), with C being the same thing as in alpha
-double getInterclusterConductance() {
+double ClusterEvaluator::getInterclusterConductance() {
      // It's 1 - the maximum value of phi(Ci) (cluster phi)
+     double max = -999999.0;
+     hmap_uint_suint::iterator it;
+     for (it = clusters->begin(); it != clusters->end(); ++it) {
+          double val = getClusterPhi(it->second);
+          if (val > max) max = val; 
+     }
+     return (1-max);
+}
+
+double ClusterEvaluator::getGraphPhi(std::set<uint>* clstr) {
+}
+
+double ClusterEvaluator::getClusterPhi(std::set<uint>* clstr) {
+     hmap::iterator git;
+     double a = 0.0, ia = 0.0, exsum = 0.0;
+     for (git = graph->graph_map.begin(); git != graph->graph_map.end(); 
+               ++git) {
+          std::set<Edge>::iterator eit;
+          if (clstr->find(git->first) == clstr->end()) {
+               // Node not in the cluster. Accumulate for inverse a
+               for (eit = git->second->begin(); eit != git->second->end(); 
+                         ++eit) {
+                    Edge e = *eit;
+                    ia += e.getWeight();
+               }
+          } else {
+               // Cluster node. Accumulate for the numerator and a
+               for (eit = git->second->begin(); eit != git->second->end(); 
+                         ++eit) {
+                    Edge e = *eit;
+                    a += e.getWeight();
+                    if (clstr->find(e.getNode()) == clstr->end()) {
+                         // Edge going outside!
+                         exsum += e.getWeight();
+                    }
+               }
+          }
+     }
+     // Now do the calculation
+     exsum = exsum/(a < ia)?a:ia;
+     return exsum;
 }

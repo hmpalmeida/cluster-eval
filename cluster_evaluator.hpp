@@ -12,11 +12,14 @@ class ClusterEvaluator {
           Graph* graph;
           hmap_uint_suint* clusters;
           std::vector<std::string>* cluster_labels;
+          unsigned int v_num_nodes;
           // Clusters by node
           hmap_uint_suint* node_cluster;
           // For Modularity
           void buildAssortativityMatrix(float** e);
-          unsigned int v_num_nodes;
+          // For Conductance
+          double getClusterPhi(std::set<uint>* clstr);
+          double getGraphPhi(std::set<uint>* clstr);
      public:
           ClusterEvaluator();
           ClusterEvaluator(Graph* g);
