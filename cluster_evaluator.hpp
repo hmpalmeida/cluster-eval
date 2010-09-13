@@ -19,7 +19,7 @@ class ClusterEvaluator {
           void buildAssortativityMatrix(float** e);
           // For Conductance
           double getClusterPhi(std::set<uint>* clstr);
-          double getGraphPhi(std::set<uint>* clstr);
+          double getGraphPhi(std::set<uint>* clstr); // ??
      public:
           ClusterEvaluator();
           ClusterEvaluator(Graph* g);
@@ -40,4 +40,6 @@ class ClusterEvaluator {
           // Conductance
           double getIntraclusterConductance();
           double getInterclusterConductance();
+          // Coverage
+          double getCoverage();
 };

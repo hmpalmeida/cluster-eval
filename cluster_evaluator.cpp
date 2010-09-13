@@ -383,3 +383,35 @@ double ClusterEvaluator::getClusterPhi(std::set<uint>* clstr) {
      exsum = exsum/(a < ia)?a:ia;
      return exsum;
 }
+
+/******************************************************
+  * Coverage calculus functions
+  ****************************************************/
+double ClusterEvaluator::getCoverage() {
+     // Run through all the clusters summing it's edge weights.
+     hmap_uint_suint::iterator it;
+     double internal = 0.0;
+     for (it = clusters->begin(); it != clusters->end(); ++it) {
+          // Run through it's elements
+          std::set<uint>::iterator node;
+          for (node = it->second->begin(); node != it->second->end(); ++node) {
+               std::set<Edge>* nbredges = graph->getAdjacency(*node);
+               // If they are both in the same cluster, add weight
+               std::set<Edge>::iterator nhoodit;
+               for (nhoodit = nbredges->begin(); nhoodit != nbredges->end();
+                         ++nhoodit) {
+                    if (it->second->find(nhoodit->getNode()) != 
+                              it->second->end()) {
+                         internal += nhoodit->getWeight();
+                    }
+               }
+          }
+     }
+     // Now run through all the graph and get the global sum TODO
+     hmap::iterator git;
+     double global = 0.0;
+     for (git = graph->graph_map.begin(); git != graph->graph_map.end(); 
+               ++git) {
+     }     
+     // coverage(C) = w(C)/w(G)
+}
