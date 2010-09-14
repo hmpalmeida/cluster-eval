@@ -412,6 +412,11 @@ double ClusterEvaluator::getCoverage() {
      double global = 0.0;
      for (git = graph->graph_map.begin(); git != graph->graph_map.end(); 
                ++git) {
-     }     
+          std::set<Edge>::iterator nhoodit;
+          for (nhoodit = git->second->begin(); nhoodit != git->second->end(); 
+                    ++nhoodit) {
+               global += nhoodit->getWeight();
+          }
+     }
      // coverage(C) = w(C)/w(G)
 }
