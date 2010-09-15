@@ -403,7 +403,10 @@ double ClusterEvaluator::getCoverage() {
                     if (it->second->find(nhoodit->getNode()) != 
                               it->second->end()) {
                          internal += nhoodit->getWeight();
-                    }
+                    } /*else {
+                         std::cout << "Outside edge: (" << nhoodit->getNode()
+                              << ", " << *node << ")" << std::endl;
+                    } */
                }
           }
      }
@@ -419,4 +422,7 @@ double ClusterEvaluator::getCoverage() {
           }
      }
      // coverage(C) = w(C)/w(G)
+     //std::cout << "Internal = " << internal << " , Global = " << global << 
+     //     std::endl;
+     return internal/global;
 }

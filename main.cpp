@@ -120,6 +120,10 @@ void evaluate(char* fgraph, char* fclusters) {
      float ent = ce.getGraphEntropy();
      std::cout << "Entropy is: " << ent << std::endl;
      
+     // Coverage!
+     double cov = ce.getCoverage();
+     std::cout << "Coverage is: " << cov << std::endl;
+
      // Cleaning allocs
      for (it = clusters.begin(); it != clusters.end(); ++it) {
           delete it->second;
