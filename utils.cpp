@@ -106,6 +106,18 @@ bool isNumber(std::string s) {
      return number;
 }
 
+// Calculates the combination n!/m!(n-m)!
+double combination(int n, int m) {
+     double cnm = 1.0;
+     if (m * 2 > n) m = n - m;
+     for (int i = 1; i <= m; n--, i++) {
+          cnm /= i;
+          cnm *= n;
+     }
+     return cnm;
+}
+
+
 /*
 template <typename T>
 std::string to_string(const T& value){

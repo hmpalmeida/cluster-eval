@@ -124,4 +124,7 @@ std::vector<std::string> stringTokenizer(std::string line,
 
 bool isNumber(std::string s);
 
+// Calculates the combination n!/m!(n-m)!
+double combination(int n, int m);
+
 #endif  // CLUSTERING_SCAN_UTILS_H_

@@ -123,6 +123,13 @@ void evaluate(char* fgraph, char* fclusters) {
      // Coverage!
      double cov = ce.getCoverage();
      std::cout << "Coverage is: " << cov << std::endl;
+     
+     // Single cluster editing!
+     std::vector<double> sce = ce.getSCE();
+     std::cout << "Single cluster editing:" << std::endl;
+     for (int i = 1; i < sce.size(); ++i) {
+          std::cout << "\t" << i << " = " << sce[i] << std::endl;
+     }
 
      // Cleaning allocs
      for (it = clusters.begin(); it != clusters.end(); ++it) {

@@ -42,4 +42,6 @@ class ClusterEvaluator {
           double getInterclusterConductance();
           // Coverage
           double getCoverage();
+          // Single Cluster Editing
+          std::vector<double> getSCE();
 };

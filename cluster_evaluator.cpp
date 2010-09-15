@@ -410,7 +410,7 @@ double ClusterEvaluator::getCoverage() {
                }
           }
      }
-     // Now run through all the graph and get the global sum TODO
+     // Now run through all the graph and get the global sum
      hmap::iterator git;
      double global = 0.0;
      for (git = graph->graph_map.begin(); git != graph->graph_map.end(); 
@@ -426,3 +426,41 @@ double ClusterEvaluator::getCoverage() {
      //     std::endl;
      return internal/global;
 }
+
+/******************************************************
+  * Single Cluster Editing calculus functions
+  ****************************************************/
+// Function that calculates the SCE
+std::vector<double> ClusterEvaluator::getSCE() {
+     hmap_uint_suint::iterator it;
+     std::vector<double> sce;
+     sce.resize(clusters->size()+1);
+     for (it = clusters->begin(); it != clusters->end(); ++it) {
+          // Run through it's elements
+          std::set<uint>::iterator node;
+          unsigned int internal = 0, external = 0; 
+          for (node = it->second->begin(); node != it->second->end(); ++node) {
+               std::set<Edge>* nbredges = graph->getAdjacency(*node);
+               // If they are both in the same cluster, add weight
+               std::set<Edge>::iterator nhoodit;
+               for (nhoodit = nbredges->begin(); nhoodit != nbredges->end();
+                         ++nhoodit) {
+                    if (it->second->find(nhoodit->getNode()) != 
+                              it->second->end()) {
+                         ++internal;
+                    } else {
+                         ++external;
+                    } 
+               }
+          }
+          // Treat double edges in undirected graph
+          if (!graph->isDirected()) internal = internal/2;
+          double total =  combination(it->second->size(),2);
+          //std::cout << total << " - " << internal << " + " << external << 
+          //    std::endl; 
+          total = total - internal + external;
+          sce[it->first] = total;
+     }
+     return sce;
+}
+
