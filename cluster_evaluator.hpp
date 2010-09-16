@@ -44,4 +44,6 @@ class ClusterEvaluator {
           double getCoverage();
           // Single Cluster Editing
           std::vector<double> getSCE();
+          // Performance
+          double getPerformance();
 };

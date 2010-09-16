@@ -464,3 +464,41 @@ std::vector<double> ClusterEvaluator::getSCE() {
      return sce;
 }
 
+/******************************************************
+  * Performance calculus functions
+  ****************************************************/
+double ClusterEvaluator::getPerformance() {
+     unsigned int internal = 0, external = 0, max_external = 0; 
+     for (int i = 1; i <= clusters->size(); ++i) {
+          // Run through it's elements
+          std::set<uint>::iterator node;
+          for (node = clusters->find(i)->second->begin(); 
+                    node != clusters->find(i)->second->end(); ++node){
+               std::set<Edge>* nbredges = graph->getAdjacency(*node);
+               // If they are both in the same cluster, add weight
+               std::set<Edge>::iterator nhoodit;
+               for (nhoodit = nbredges->begin(); nhoodit != nbredges->end();
+                         ++nhoodit) {
+                    if (clusters[i].find(nhoodit->getNode()) != 
+                              clusters[i].end()) {
+                         ++internal;
+                    } else {
+                         ++external;
+                    } 
+               }
+               // Calculating the maximum number of external edges
+               for (int j = 1; j <= clusters->size(); ++j) {
+                    if (i != j) {
+                         max_external += clusters[i].size() * 
+                              clusters[j].size();
+                    }
+               }
+          }
+     }
+     // <internal> is f(C), make <external> = g(C)
+     external = max_external - external;
+     double total = (internal + external)/
+          (0.5 * graph->getNumNodes() * (graph->getNumNodes() - 1));
+     return total;
+
+}
