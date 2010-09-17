@@ -479,24 +479,35 @@ double ClusterEvaluator::getPerformance() {
                std::set<Edge>::iterator nhoodit;
                for (nhoodit = nbredges->begin(); nhoodit != nbredges->end();
                          ++nhoodit) {
-                    if (clusters[i].find(nhoodit->getNode()) != 
-                              clusters[i].end()) {
+                    if (clusters->find(i)->second->find(nhoodit->getNode()) != 
+                              clusters->find(i)->second->end()) {
                          ++internal;
                     } else {
                          ++external;
                     } 
                }
-               // Calculating the maximum number of external edges
-               for (int j = 1; j <= clusters->size(); ++j) {
-                    if (i != j) {
-                         max_external += clusters[i].size() * 
-                              clusters[j].size();
-                    }
+          }
+          // Calculating the maximum number of external edges
+          for (int j = 1; j <= clusters->size(); ++j) {
+               if (i != j) {
+                    max_external += clusters->find(i)->second->size() * 
+                         clusters->find(j)->second->size();
                }
           }
      }
+     // Treat double edges in undirected graph
+     if (!graph->isDirected()) {
+          max_external /= 2;
+          external /= 2;
+          internal /= 2;
+     }
      // <internal> is f(C), make <external> = g(C)
+     //std::cout << "Max external = " << max_external << " , External = " <<
+     //     external << std::endl;
      external = max_external - external;
+     //std::cout << internal << " + " << external << " / 0.5 * " << 
+     //     graph->getNumNodes()  << " * ( " << graph->getNumNodes() - 1 << 
+     //     " ) " << std::endl;
      double total = (internal + external)/
           (0.5 * graph->getNumNodes() * (graph->getNumNodes() - 1));
      return total;

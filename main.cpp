@@ -109,27 +109,47 @@ void evaluate(char* fgraph, char* fclusters) {
      }
      // Starting the cluster evaluator
      ClusterEvaluator ce(&gr, &clusters, &cluster_label, &id_clusters, vnn);
+     
+     std::cout << "-----------------------------------------" << std::endl;
+
      std::vector<double> sil = ce.getSilhouetteIndex();
      for (int i = 1; i < sil.size(); ++i) {
           std::cout << "Si for cluster " << i << ": " << 
                sil[i] << std::endl;
      }
+     
+     std::cout << "-----------------------------------------" << std::endl;
+
      float mod = ce.getModularity();
      std::cout << "Modularity is: " << mod << std::endl;
+
+     std::cout << "-----------------------------------------" << std::endl;
 
      float ent = ce.getGraphEntropy();
      std::cout << "Entropy is: " << ent << std::endl;
      
+     std::cout << "-----------------------------------------" << std::endl;
+
      // Coverage!
      double cov = ce.getCoverage();
      std::cout << "Coverage is: " << cov << std::endl;
      
+     std::cout << "-----------------------------------------" << std::endl;
+
      // Single cluster editing!
      std::vector<double> sce = ce.getSCE();
      std::cout << "Single cluster editing:" << std::endl;
      for (int i = 1; i < sce.size(); ++i) {
           std::cout << "\t" << i << " = " << sce[i] << std::endl;
      }
+     
+     std::cout << "-----------------------------------------" << std::endl;
+
+     // Performance!
+     double perf = ce.getPerformance();
+     std::cout << "Performance is: " << perf << std::endl;
+     
+     std::cout << "-----------------------------------------" << std::endl;
 
      // Cleaning allocs
      for (it = clusters.begin(); it != clusters.end(); ++it) {
