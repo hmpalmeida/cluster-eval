@@ -10,11 +10,6 @@
 #include "cluster_evaluator.hpp"
 #include "intersection_naming.hpp"
 
-/*
-   * coverage and silhouette index NaN ?!!?!?!
-   */
-
-
 /* 
  * Loads a file with clustering data for evaluation
  */
@@ -122,8 +117,9 @@ void evaluate(char* fgraph, std::vector<std::string>* clusterings) {
                " ---" << std::endl;
           std::cout << "------------------------------------" << std::endl;
           
-          for (int i = 1; i < clusterings->size(); ++i) {
-               std::cout << "Cluster size " << i << " = "<< clusters[i]->size();
+          for (int i = 1; i <= clusters.size(); ++i) {
+               std::cout << "Cluster size " << i << " = "<< 
+                    clusters[i]->size() << std::endl;
           }
           
           std::cout << "------------------------------------" << std::endl;
