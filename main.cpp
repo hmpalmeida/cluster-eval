@@ -10,10 +10,15 @@
 #include "cluster_evaluator.hpp"
 #include "intersection_naming.hpp"
 
+/*
+   * coverage and silhouette index NaN ?!!?!?!
+   */
+
+
 /* 
  * Loads a file with clustering data for evaluation
  */
-uint getClusters(char* fclusters, hmap_uint_suint* clusters, 
+uint getClusters(std::string fclusters, hmap_uint_suint* clusters, 
           std::vector<std::string>* id_clusters, Graph* g) {
      std::set<uint>* tmpset = NULL;
      // as always, no cluster 0
@@ -21,7 +26,7 @@ uint getClusters(char* fclusters, hmap_uint_suint* clusters,
      std::ifstream cluster_file;
      std::vector<std::string> tokens;
      std::string line;
-     cluster_file.open(fclusters);
+     cluster_file.open(fclusters.c_str());
      uint field_counter, cid = 1;
      getline(cluster_file, line);
      // To count the nodes who appear in multiple clusters
@@ -80,83 +85,95 @@ uint getClusters(char* fclusters, hmap_uint_suint* clusters,
 void getClustersByNode() {
 }
 
-void evaluate(char* fgraph, char* fclusters) {
+void evaluate(char* fgraph, std::vector<std::string>* clusterings) {
      // Loading the graph data
      Graph gr(fgraph);
-     // Loading the cluster data
-     std::vector<std::string> id_clusters;
-     hmap_uint_suint clusters;
-     uint vnn = getClusters(fclusters, &clusters, &id_clusters, &gr);
-     // Generating the clusters by node data
-     hmap_uint_suint cluster_label;
-     hmap_uint_suint::const_iterator it;
-     std::set<uint>::iterator sit;
-     for (it = clusters.begin(); it != clusters.end(); ++it) {
-          for (sit = it->second->begin(); sit != it->second->end(); ++sit) {
-               if (cluster_label[*sit] == NULL) 
-                    cluster_label[*sit] = new std::set<uint>;
-               cluster_label[*sit]->insert(it->first);
+     for (int i = 0; i < clusterings->size(); ++i) {
+          // Loading the cluster data
+          std::vector<std::string> id_clusters;
+          hmap_uint_suint clusters;
+          uint vnn = getClusters(clusterings->at(i), &clusters, 
+                    &id_clusters, &gr);
+          // Generating the clusters by node data
+          hmap_uint_suint cluster_label;
+          hmap_uint_suint::const_iterator it;
+          std::set<uint>::iterator sit;
+          for (it = clusters.begin(); it != clusters.end(); ++it) {
+               for (sit = it->second->begin(); sit != it->second->end(); 
+                         ++sit) {
+                    if (cluster_label[*sit] == NULL) 
+                         cluster_label[*sit] = new std::set<uint>;
+                    cluster_label[*sit]->insert(it->first);
+               }
           }
-          //std::cout << it->first << ": " << it->second->size() << std::endl;
-     }
-     // Adding cluster 0 to any node not in a cluster
-     hmap::iterator hit;
-     for (hit = gr.graph_map.begin(); hit != gr.graph_map.end(); ++hit) {
-          if (cluster_label[hit->first] == NULL) {
-               cluster_label[hit->first] = new std::set<uint>;
-               cluster_label[hit->first]->insert(0);
+          // Adding cluster 0 to any node not in a cluster
+          hmap::iterator hit;
+          for (hit = gr.graph_map.begin(); hit != gr.graph_map.end(); ++hit) {
+               if (cluster_label[hit->first] == NULL) {
+                    cluster_label[hit->first] = new std::set<uint>;
+                    cluster_label[hit->first]->insert(0);
+               }
           }
-     }
-     // Starting the cluster evaluator
-     ClusterEvaluator ce(&gr, &clusters, &cluster_label, &id_clusters, vnn);
+          // Starting the cluster evaluator
+          ClusterEvaluator ce(&gr, &clusters, &cluster_label, &id_clusters,vnn);
+          
+          std::cout << "------------------------------------" << std::endl;
+          std::cout << "--- Clusterings for: " << clusterings->at(i) << 
+               " ---" << std::endl;
+          std::cout << "------------------------------------" << std::endl;
+          
+          for (int i = 1; i < clusterings->size(); ++i) {
+               std::cout << "Cluster size " << i << " = "<< clusters[i]->size();
+          }
+          
+          std::cout << "------------------------------------" << std::endl;
+          
+          std::vector<double> sil = ce.getSilhouetteIndex();
+          for (int i = 1; i < sil.size(); ++i) {
+               std::cout << "Si for cluster " << i << ": " << 
+                    sil[i] << std::endl;
+          }
+          
+          std::cout << "------------------------------------" << std::endl;
+          
+          float mod = ce.getModularity();
+          std::cout << "Modularity is: " << mod << std::endl;
+          
+          std::cout << "------------------------------------" << std::endl;
+          
+          float ent = ce.getGraphEntropy();
+          std::cout << "Entropy is: " << ent << std::endl;
      
-     std::cout << "-----------------------------------------" << std::endl;
+          std::cout << "------------------------------------" << std::endl;
 
-     std::vector<double> sil = ce.getSilhouetteIndex();
-     for (int i = 1; i < sil.size(); ++i) {
-          std::cout << "Si for cluster " << i << ": " << 
-               sil[i] << std::endl;
-     }
+          // Coverage!
+          double cov = ce.getCoverage();
+          std::cout << "Coverage is: " << cov << std::endl;
      
-     std::cout << "-----------------------------------------" << std::endl;
-
-     float mod = ce.getModularity();
-     std::cout << "Modularity is: " << mod << std::endl;
-
-     std::cout << "-----------------------------------------" << std::endl;
-
-     float ent = ce.getGraphEntropy();
-     std::cout << "Entropy is: " << ent << std::endl;
+          std::cout << "------------------------------------" << std::endl;
+          
+          // Single cluster editing!
+          std::vector<double> sce = ce.getSCE();
+          std::cout << "Single cluster editing:" << std::endl;
+          for (int i = 1; i < sce.size(); ++i) {
+               std::cout << "\t" << i << " = " << sce[i] << std::endl;
+          }
      
-     std::cout << "-----------------------------------------" << std::endl;
+          std::cout << "------------------------------------" << std::endl;
 
-     // Coverage!
-     double cov = ce.getCoverage();
-     std::cout << "Coverage is: " << cov << std::endl;
+          // Performance!
+          double perf = ce.getPerformance();
+          std::cout << "Performance is: " << perf << std::endl;
      
-     std::cout << "-----------------------------------------" << std::endl;
+          std::cout << "------------------------------------" << std::endl;
 
-     // Single cluster editing!
-     std::vector<double> sce = ce.getSCE();
-     std::cout << "Single cluster editing:" << std::endl;
-     for (int i = 1; i < sce.size(); ++i) {
-          std::cout << "\t" << i << " = " << sce[i] << std::endl;
-     }
-     
-     std::cout << "-----------------------------------------" << std::endl;
-
-     // Performance!
-     double perf = ce.getPerformance();
-     std::cout << "Performance is: " << perf << std::endl;
-     
-     std::cout << "-----------------------------------------" << std::endl;
-
-     // Cleaning allocs
-     for (it = clusters.begin(); it != clusters.end(); ++it) {
-          delete it->second;
-     }
-     for (it = cluster_label.begin(); it != cluster_label.end(); ++it) {
-          delete it->second;
+          // Cleaning allocs
+          for (it = clusters.begin(); it != clusters.end(); ++it) {
+               delete it->second;
+          }
+          for (it = cluster_label.begin(); it != cluster_label.end(); ++it) {
+               delete it->second;
+          }
      }
 }
 
@@ -188,22 +205,27 @@ int main(int argc, char** argv){
                if (argc != 6) {
                     std:: cout << "Bad command." << std::endl;
                     std::cout << "Should be:" << std::endl <<
-                    "\t ./cluster scan <epsilon> <mi>  <sim_function_#> <graph_file>" << std::endl;
+                    "\t ./cluster scan <epsilon> <mi> "<< 
+                    "<sim_function_#> <graph_file>" << std::endl;
                     return 1;
                }
                runScan(atof(argv[2]), atoi(argv[3]), atoi(argv[4]), 
                          argv[5]);
           } else if (x == "eval") {
                // Find the best epsilon using modularity
-               if (argc != 4) {
+               if (argc < 4) {
                     std:: cout << "Bad command." << std::endl;
                     std::cout << "Should be:" << std::endl <<
-                    "\t ./cluster eval <graph_file> <cluster_file>" << 
+                    "\t ./cluster eval <graph_file> <cluster_files>" << 
                     std::endl;
                     return 1;
                }
                //std::cout << "Best Epsilon: " << 
-               evaluate(argv[2], argv[3]);
+               std::vector<std::string> clustering_files;
+               for (int i = 3; i < argc; ++i) {
+                    clustering_files.push_back(argv[i]);
+               }
+               evaluate(argv[2], &clustering_files);
                //               atof(argv[4]),atoi(argv[5]),atoi(argv[6]),
                //               argv[7]) << std::endl;
           }
